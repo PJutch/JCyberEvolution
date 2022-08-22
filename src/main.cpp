@@ -11,6 +11,8 @@ See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with JCyberEvolution. 
 If not, see <https://www.gnu.org/licenses/>. */
 
+#include "Field.h"
+
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <imgui_sugar.hpp>
@@ -49,8 +51,9 @@ int main(int argc, char** argv) {
     window.setFramerateLimit(60);
 
     ImGui::SFML::Init(window);
-
     ImGuiIO& io = ImGui::GetIO();
+
+    Field field{128, 128};
 
     Clock clock;
     while (window.isOpen()) {
@@ -71,7 +74,8 @@ int main(int argc, char** argv) {
         
         ImGui::SFML::Update(window, elapsedTime);
     
-        window.clear(Color::Black);
+        window.clear(Color::White);
+        window.draw(field);
 
         ImGui::SFML::Render(window);
 
