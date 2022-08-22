@@ -3,6 +3,9 @@
 ## About
 This is life simulator with evolving executable DNA
 
+## License
+JCyberEvolution is licensed under GNU General Public License 3
+
 ## Features
 Will be soon
 
