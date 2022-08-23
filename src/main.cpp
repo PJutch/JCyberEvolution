@@ -21,6 +21,8 @@ If not, see <https://www.gnu.org/licenses/>. */
 using sf::Color;
 using sf::RenderWindow;
 using sf::Texture;
+using sf::View;
+using sf::FloatRect;
 
 #include <SFML/System.hpp>
 using sf::Clock;
@@ -40,20 +42,35 @@ using std::endl;
 #include <string>
 using std::string;
 
+#include <algorithm>
+using std::clamp;
+
 #include <stdlib.h>
 
 int main(int argc, char** argv) {
     auto videoMode = VideoMode::getDesktopMode();
-    float width = videoMode.width;
-    float height = videoMode.height;
+    float width = static_cast<float>(videoMode.width);
+    float height = static_cast<float>(videoMode.height);
 
     RenderWindow window{videoMode, "JCyberEvolution", Style::Fullscreen};
-    window.setFramerateLimit(60);
+    window.setVerticalSyncEnabled(true);
 
     ImGui::SFML::Init(window);
     ImGuiIO& io = ImGui::GetIO();
 
     Field field{128, 128};
+    field.setPosition(256, 256);
+
+    View mainView{FloatRect{0.f, 0.f, width, height}};
+    mainView.setViewport(FloatRect{0.f, 0.f, 1.f, 1.f});
+
+    FloatRect baseFieldView{0.f, 0.f, 2048.f, 2048.f};
+    View fieldView{baseFieldView};
+    fieldView.setViewport(FloatRect{0.f, 0.f, height / width, 1.f});
+    float zoom = 1.0f;
+    fieldView.zoom(zoom);
+
+    float baseMovingSpeed = 100.0f;
 
     Clock clock;
     while (window.isOpen()) {
@@ -67,15 +84,54 @@ int main(int argc, char** argv) {
                 case Event::Closed: window.close(); break;
                 case Event::KeyPressed:
                     if (io.WantCaptureKeyboard) break;
-                    if (event.key.code == Keyboard::Escape) window.close();
+
+                    switch (event.key.code) {
+                        case Keyboard::Escape: window.close(); break;
+                    }
                     break;
+                case Event::MouseWheelScrolled:
+                    if (io.WantCaptureMouse) break;
+
+                    float zoomChange = -event.mouseWheelScroll.delta;
+                    if (!io.WantCaptureKeyboard) {
+                        if (Keyboard::isKeyPressed(Keyboard::LShift)) zoomChange *= 10.f;
+                        if (Keyboard::isKeyPressed(Keyboard::LControl)) zoomChange /= 10.f;
+                    }
+                    
+                    zoom *= std::pow(1.1, zoomChange);
+                    zoom = std::clamp(zoom, 0.01f, 100.0f);
+
+                    fieldView.setSize(baseFieldView.width, baseFieldView.height);
+                    fieldView.zoom(zoom);
+                    field.zoom(zoom);
             }
+        }
+
+        if (!io.WantCaptureKeyboard) {
+            float moved = baseMovingSpeed * elapsedTime.asSeconds();
+            if (Keyboard::isKeyPressed(Keyboard::LShift)) moved *= 10.f;
+            if (Keyboard::isKeyPressed(Keyboard::LControl)) moved /= 10.f;
+
+            if (Keyboard::isKeyPressed(Keyboard::W))
+                fieldView.setCenter(fieldView.getCenter().x, fieldView.getCenter().y - moved); 
+            if (Keyboard::isKeyPressed(Keyboard::S))
+                fieldView.setCenter(fieldView.getCenter().x, fieldView.getCenter().y + moved); 
+            if (Keyboard::isKeyPressed(Keyboard::A))
+                fieldView.setCenter(fieldView.getCenter().x - moved, fieldView.getCenter().y); 
+            if (Keyboard::isKeyPressed(Keyboard::D))
+                fieldView.setCenter(fieldView.getCenter().x + moved, fieldView.getCenter().y); 
         }
         
         ImGui::SFML::Update(window, elapsedTime);
     
         window.clear(Color::White);
+
+        window.setView(fieldView);
         window.draw(field);
+
+        window.setView(mainView);
+
+        ImGui::ShowDemoWindow();
 
         ImGui::SFML::Render(window);
 

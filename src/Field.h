@@ -7,7 +7,7 @@
 
 #include <vector>
 
-class Field : public sf::Drawable {
+class Field : public sf::Transformable, public sf::Drawable {
 public:
     Field(int width, int height);
 
@@ -18,6 +18,8 @@ public:
     int getHeight() const noexcept {
         return m_height;
     }
+
+    void zoom(float zoom) noexcept;
 
     Cell& at(int i, int j) noexcept {
         return m_cells[i * m_width + j];

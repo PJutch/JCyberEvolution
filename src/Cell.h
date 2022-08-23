@@ -5,26 +5,26 @@
 
 class Cell : public sf::Drawable {
 public:
-    static const int SIZE = 4;
+    static const int SIZE = 10;
 
     Cell() = default;
     Cell(sf::Vector2i position, sf::Color color) noexcept;
-
-    sf::Vector2i getPosition() const noexcept {
-        return m_position;
-    }
 
     sf::Color getColor() const noexcept {
         return m_shape.getFillColor();
     }
 
+    void zoom(float zoom) noexcept {
+        m_shape.setOutlineThickness(zoom < 0.4f ? -0.5f : 0.f);
+    }
+
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override {
-        target.draw(m_shape);
+        target.draw(m_shape, states);
     }
 private:
-    sf::Vector2i m_position;
-
     sf::RectangleShape m_shape;
+
+    void setColor(sf::Color color) noexcept;
 };
 
 #endif
