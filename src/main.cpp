@@ -12,6 +12,7 @@ You should have received a copy of the GNU General Public License along with JCy
 If not, see <https://www.gnu.org/licenses/>. */
 
 #include "Field.h"
+#include "FieldView.h"
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -61,14 +62,7 @@ int main(int argc, char** argv) {
     Field field{128, 128};
     field.setPosition(64, 64);
 
-    View mainView{FloatRect{0.f, 0.f, width, height}};
-    mainView.setViewport(FloatRect{0.f, 0.f, 1.f, 1.f});
-
-    FloatRect baseFieldView{0.f, 0.f, 256.f, 256.f};
-    View fieldView{baseFieldView};
-    fieldView.setViewport(FloatRect{0.f, 0.f, height / width, 1.f});
-    float zoom = 1.0f;
-    fieldView.zoom(zoom);
+    FieldView fieldView{{0.f, 0.f, 256.f, 256.f}, {0.f, 0.f, height / width, 1.f}, field};
 
     float baseMovingSpeed = 100.0f;
 
@@ -91,45 +85,18 @@ int main(int argc, char** argv) {
                     break;
                 case Event::MouseWheelScrolled:
                     if (io.WantCaptureMouse) break;
-
-                    float zoomChange = -event.mouseWheelScroll.delta;
-                    if (!io.WantCaptureKeyboard) {
-                        if (Keyboard::isKeyPressed(Keyboard::LShift)) zoomChange *= 10.f;
-                        if (Keyboard::isKeyPressed(Keyboard::LControl)) zoomChange /= 10.f;
-                    }
-
-                    zoom *= std::pow(1.1, zoomChange);
-                    zoom = std::clamp(zoom, 0.01f, 100.0f);
-
-                    fieldView.setSize(baseFieldView.width, baseFieldView.height);
-                    fieldView.zoom(zoom);
-                    field.zoom(zoom);
+                    fieldView.handleEvent(event);
+                    break;
             }
         }
 
-        if (!io.WantCaptureKeyboard) {
-            float moved = baseMovingSpeed * elapsedTime.asSeconds();
-            if (Keyboard::isKeyPressed(Keyboard::LShift)) moved *= 10.f;
-            if (Keyboard::isKeyPressed(Keyboard::LControl)) moved /= 10.f;
-
-            if (Keyboard::isKeyPressed(Keyboard::W))
-                fieldView.setCenter(fieldView.getCenter().x, fieldView.getCenter().y - moved); 
-            if (Keyboard::isKeyPressed(Keyboard::S))
-                fieldView.setCenter(fieldView.getCenter().x, fieldView.getCenter().y + moved); 
-            if (Keyboard::isKeyPressed(Keyboard::A))
-                fieldView.setCenter(fieldView.getCenter().x - moved, fieldView.getCenter().y); 
-            if (Keyboard::isKeyPressed(Keyboard::D))
-                fieldView.setCenter(fieldView.getCenter().x + moved, fieldView.getCenter().y); 
-        }
+        fieldView.update(!io.WantCaptureKeyboard, elapsedTime);
         
         ImGui::SFML::Update(window, elapsedTime);
     
         window.clear(Color::White);
 
-        window.setView(fieldView);
-        window.draw(field);
-
-        window.setView(mainView);
+        window.draw(fieldView);
 
         ImGui::ShowDemoWindow();
 
