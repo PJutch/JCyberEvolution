@@ -2,6 +2,9 @@
 
 #include <SFML/Graphics.hpp>
 using sf::FloatRect;
+using sf::Color;
+using sf::RenderTarget;
+using sf::RenderStates;
 
 #include <SFML/System.hpp>
 using sf::Keyboard;
@@ -51,4 +54,22 @@ void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
         if (Keyboard::isKeyPressed(Keyboard::D))
             m_view.setCenter(m_view.getCenter().x + moved, m_view.getCenter().y); 
     }
+}
+
+void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
+    sf::View prevView = target.getView();
+
+    sf::RectangleShape borderShape;
+    borderShape.setSize({prevView.getSize().x * m_view.getViewport().width,  
+                           prevView.getSize().y * m_view.getViewport().height});
+    borderShape.setPosition(prevView.getSize().x * m_view.getViewport().left,  
+                              prevView.getSize().y * m_view.getViewport().top);
+    borderShape.setFillColor(Color::Transparent);
+    borderShape.setOutlineColor(Color::Black);
+    borderShape.setOutlineThickness(5.f);
+    target.draw(borderShape, states);
+
+    target.setView(m_view);
+    target.draw(m_field, states);
+    target.setView(prevView);
 }
