@@ -62,6 +62,8 @@ private:
     int m_height;
 
     std::vector<Cell> m_cells;
+
+    sf::RectangleShape m_borderShape;
 };
 
 #endif

@@ -59,12 +59,12 @@ int main(int argc, char** argv) {
     ImGuiIO& io = ImGui::GetIO();
 
     Field field{128, 128};
-    field.setPosition(256, 256);
+    field.setPosition(64, 64);
 
     View mainView{FloatRect{0.f, 0.f, width, height}};
     mainView.setViewport(FloatRect{0.f, 0.f, 1.f, 1.f});
 
-    FloatRect baseFieldView{0.f, 0.f, 2048.f, 2048.f};
+    FloatRect baseFieldView{0.f, 0.f, 256.f, 256.f};
     View fieldView{baseFieldView};
     fieldView.setViewport(FloatRect{0.f, 0.f, height / width, 1.f});
     float zoom = 1.0f;
@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
                         if (Keyboard::isKeyPressed(Keyboard::LShift)) zoomChange *= 10.f;
                         if (Keyboard::isKeyPressed(Keyboard::LControl)) zoomChange /= 10.f;
                     }
-                    
+
                     zoom *= std::pow(1.1, zoomChange);
                     zoom = std::clamp(zoom, 0.01f, 100.0f);
 

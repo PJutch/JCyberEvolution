@@ -4,9 +4,9 @@
 using sf::Vector2i;
 using sf::Color;
 
-Cell::Cell(sf::Vector2i position, sf::Color color) noexcept : m_shape{{SIZE, SIZE}} {
-    m_shape.setPosition(static_cast<float>(position.x * SIZE), 
-                        static_cast<float>(position.y * SIZE));
+Cell::Cell(sf::Vector2i position, sf::Color color) noexcept : m_shape{{1, 1}} {
+    m_shape.setPosition(static_cast<float>(position.x), 
+                        static_cast<float>(position.y));
     setColor(color);
 }
 

@@ -5,8 +5,6 @@
 
 class Cell : public sf::Drawable {
 public:
-    static const int SIZE = 10;
-
     Cell() = default;
     Cell(sf::Vector2i position, sf::Color color) noexcept;
 
@@ -15,7 +13,7 @@ public:
     }
 
     void zoom(float zoom) noexcept {
-        m_shape.setOutlineThickness(zoom < 0.4f ? -0.5f : 0.f);
+        m_shape.setOutlineThickness(zoom < 0.4f ? -0.05f : 0.f);
     }
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override {
