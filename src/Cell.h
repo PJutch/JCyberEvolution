@@ -12,8 +12,8 @@ public:
         return m_shape.getFillColor();
     }
 
-    void zoom(float zoom) noexcept {
-        m_shape.setOutlineThickness(zoom < 0.4f ? -0.05f : 0.f);
+    void setShouldDrawBorder(bool shouldDrawBorder) noexcept {
+        m_shape.setOutlineThickness(shouldDrawBorder ? -0.05f : 0.f);
     }
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override {

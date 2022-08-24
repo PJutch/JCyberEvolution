@@ -63,6 +63,7 @@ int main(int argc, char** argv) {
     field.setPosition(64, 64);
 
     FieldView fieldView{{0.f, 0.f, 256.f, 256.f}, {0.f, 0.f, height / width, 1.f}, field};
+    fieldView.setShouldRepeat(true);
 
     float baseMovingSpeed = 100.0f;
 

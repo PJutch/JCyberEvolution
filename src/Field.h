@@ -19,12 +19,16 @@ public:
         return m_height;
     }
 
-    void zoom(float zoom) noexcept;
+    sf::Vector2f getSize() const noexcept {
+        return sf::Vector2f(m_width, m_height);
+    }
 
+    // unsafe, check indices by yourself
     Cell& at(int i, int j) noexcept {
         return m_cells[i * m_width + j];
     }
 
+    // unsafe, check indices by yourself
     const Cell& at(int i, int j) const noexcept {
         return m_cells[i * m_width + j];
     }
@@ -57,12 +61,17 @@ public:
     }
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
+
+    void setShouldDrawBorder(bool shouldDrawBorder) noexcept {
+        m_shouldDrawBorder = shouldDrawBorder;
+    }
 private:
     int m_width;
     int m_height;
 
     std::vector<Cell> m_cells;
 
+    bool m_shouldDrawBorder;
     sf::RectangleShape m_borderShape;
 };
 

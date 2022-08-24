@@ -5,6 +5,8 @@ using sf::FloatRect;
 using sf::Color;
 using sf::RenderTarget;
 using sf::RenderStates;
+using sf::Vector2f;
+using sf::Transform;
 
 #include <SFML/System.hpp>
 using sf::Keyboard;
@@ -16,9 +18,10 @@ using std::clamp;
 
 #include <cmath>
 using std::pow;
+using std::fmod;
 
 FieldView::FieldView(FloatRect rect, FloatRect viewport, Field& field) : 
-        m_field{field}, m_view{rect}, m_zoom{1.0f}, 
+        m_field{field}, m_view{rect}, m_zoom{1.0f}, m_shouldRepeat{false},
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     m_view.setViewport(viewport);
 }
@@ -31,10 +34,13 @@ bool FieldView::handleEvent(const Event& event) noexcept {
     if (Keyboard::isKeyPressed(Keyboard::LControl)) zoomChange /= m_speedModificator;
 
     m_zoom *= pow(m_baseZoomingChange, zoomChange);
-    m_zoom = clamp(m_zoom, 0.01f, 100.0f);
+    m_zoom = clamp(m_zoom, 0.01f, 1.f);
 
     m_view.zoom(m_zoom);
-    m_field.zoom(m_zoom);
+
+    for (auto& cell : m_field) {
+        cell.setShouldDrawBorder(m_zoom < 0.4f);
+    }
 
     return true;
 }
@@ -61,15 +67,39 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
 
     sf::RectangleShape borderShape;
     borderShape.setSize({prevView.getSize().x * m_view.getViewport().width,  
-                           prevView.getSize().y * m_view.getViewport().height});
+                        prevView.getSize().y * m_view.getViewport().height});
     borderShape.setPosition(prevView.getSize().x * m_view.getViewport().left,  
-                              prevView.getSize().y * m_view.getViewport().top);
+                            prevView.getSize().y * m_view.getViewport().top);
     borderShape.setFillColor(Color::Transparent);
     borderShape.setOutlineColor(Color::Black);
     borderShape.setOutlineThickness(5.f);
     target.draw(borderShape, states);
 
     target.setView(m_view);
-    target.draw(m_field, states);
+
+    if (m_shouldRepeat) {
+        Vector2f viewStart = m_view.getCenter() - m_view.getSize() / 2.f;
+        Vector2f viewEnd = m_view.getCenter() + m_view.getSize() / 2.f;
+
+        Vector2f relativeFieldPos = m_field.getPosition() - viewStart;
+        Vector2f renderOffset{fmodf(relativeFieldPos.x, m_field.getWidth()), 
+                              fmodf(relativeFieldPos.y, m_field.getHeight())};
+    
+
+        Vector2f renderStart = viewStart + renderOffset - m_field.getSize();
+
+        for (float y = renderStart.y; y < viewEnd.y; y += m_field.getHeight()) {
+            for (float x = renderStart.x; x < viewEnd.x; x += m_field.getWidth()) {
+                RenderStates currentStates = states;
+                currentStates.transform.translate(x, y);
+                currentStates.transform.translate(-m_field.getPosition());
+
+                target.draw(m_field, currentStates);
+            }
+        }
+    } else {
+        target.draw(m_field, states);
+    }
+
     target.setView(prevView);
 }

@@ -15,11 +15,18 @@ public:
     void update(bool keyboardAvailable, sf::Time elapsedTime) noexcept;
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
+
+    void setShouldRepeat(bool shouldRepeat) noexcept {
+        m_shouldRepeat = shouldRepeat;
+        m_field.setShouldDrawBorder(!m_shouldRepeat);
+    }
 private:
     Field& m_field;
     sf::View m_view;
 
     float m_zoom;
+
+    bool m_shouldRepeat;
 
     float m_baseZoomingChange;
     float m_baseMovingSpeed;
