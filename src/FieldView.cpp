@@ -39,7 +39,9 @@ bool FieldView::handleEvent(const Event& event) noexcept {
     m_view.zoom(m_zoom);
 
     for (auto& cell : m_field) {
-        cell.setShouldDrawBorder(m_zoom < 0.4f);
+        cell.setShouldDrawOutline(m_zoom < 0.2f);
+        cell.setShouldDrawBotOutline(m_zoom < 0.1f);
+        cell.setShouldDrawBackground(m_zoom < 0.4f);
     }
 
     return true;

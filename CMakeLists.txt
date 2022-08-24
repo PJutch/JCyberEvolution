@@ -9,7 +9,8 @@ include_directories(src)
 include_directories(extlibs/imgui)
 include_directories(extlibs/SFML/include)
 
-add_executable(JCyberEvolution src/main.cpp src/Field.cpp src/Cell.cpp src/FieldView.cpp src/Bot.cpp)
+add_executable(JCyberEvolution src/main.cpp src/Field.cpp src/Cell.cpp src/FieldView.cpp 
+                               src/Bot.cpp src/utility.cpp)
 set_property(TARGET JCyberEvolution PROPERTY MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 
 add_library(DearImGui STATIC ../extlibs/imgui/imgui.cpp ../extlibs/imgui/imgui_draw.cpp 

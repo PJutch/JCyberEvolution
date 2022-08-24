@@ -20,17 +20,30 @@ public:
         m_bot = std::move(bot);
     }
 
-    void setShouldDrawBorder(bool shouldDrawBorder) noexcept {
-        m_shape.setOutlineThickness(shouldDrawBorder ? -0.05f : 0.f);
+    void setShouldDrawOutline(bool shouldDrawOutline) noexcept {
+        m_shape.setOutlineThickness(shouldDrawOutline ? -0.05f : 0.f);
     }
 
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override {
-        target.draw(m_shape, states);
-        if (m_bot) target.draw(*m_bot, states);
+    void setShouldDrawBotOutline(bool shouldDrawOutline) noexcept {
+        m_bot->setShouldDrawOutline(shouldDrawOutline);
     }
+
+    // work only if bot is visible
+    void setShouldDrawBackground(bool shouldDrawBackground) noexcept {
+        m_shouldDrawBackground = shouldDrawBackground;
+    }
+
+    void setShouldDrawBot(bool shouldDrawBot) noexcept {
+        m_shouldDrawBot = shouldDrawBot;
+    }
+
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
 private:
     sf::RectangleShape m_shape;
     std::unique_ptr<Bot> m_bot;
+
+    bool m_shouldDrawBackground;
+    bool m_shouldDrawBot;
 
     void setColor(sf::Color color) noexcept;
 };

@@ -1,4 +1,5 @@
 #include "Bot.h"
+#include "utility.h"
 
 #include <SFML/Graphics.hpp>
 using sf::Vector2f;
@@ -10,6 +11,8 @@ Bot::Bot(Vector2f position, Color color) noexcept : m_shape{{0.7f, 0.7f}} {
     m_shape.setOrigin(-0.15f, -0.15f);
     m_shape.setPosition(position);
     m_shape.setFillColor(color);
+    m_shape.setOutlineColor(getOutlineColorFor(color));
+    m_shape.setOutlineThickness(0);
 }
 
 void Bot::draw(RenderTarget& target, RenderStates states) const noexcept {
