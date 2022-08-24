@@ -1,16 +1,18 @@
 #include "Cell.h"
 
 #include <SFML/Graphics.hpp>
-using sf::Vector2i;
+using sf::Vector2f;
 using sf::Color;
 
-Cell::Cell(sf::Vector2i position, sf::Color color) noexcept : m_shape{{1, 1}} {
-    m_shape.setPosition(static_cast<float>(position.x), 
-                        static_cast<float>(position.y));
+#include <memory>
+
+Cell::Cell(Vector2f position, Color color) noexcept : 
+        m_shape{{1, 1}}, m_bot{nullptr} {
+    m_shape.setPosition(position);
     setColor(color);
 }
 
-void Cell::setColor(sf::Color color) noexcept {
+void Cell::setColor(Color color) noexcept {
     m_shape.setFillColor(color);
 
     Color outlineColor;

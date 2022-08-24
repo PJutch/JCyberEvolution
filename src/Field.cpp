@@ -1,10 +1,15 @@
 #include "Field.h"
 #include "Cell.h"
+#include "Bot.h"
 
 #include <SFML/Graphics.hpp>
 using sf::RenderTarget;
 using sf::RenderStates;
 using sf::Color;
+using sf::Vector2f;
+
+#include <memory>
+using std::make_unique;
 
 Field::Field(int width, int height) : 
         m_width{width}, m_height{height}, m_cells{width * height}, m_shouldDrawBorder{true},
@@ -15,11 +20,10 @@ Field::Field(int width, int height) :
 
     for (int i = 0; i < m_width; ++ i) {
         for (int j = 0; j < m_height; ++ j) {
-            at(i, j) = Cell{{i, j}, Color::Green};
+            at(i, j) = Cell{Vector2f(i, j), Color::Green};
+            at(i, j).setBot(make_unique<Bot>(Vector2f(i, j), Color::Red));
         }
     }
-
-    at(0, 0) = Cell{{0, 0}, Color::Red};
 }
 
 void Field::draw(RenderTarget& target, RenderStates states) const noexcept {
