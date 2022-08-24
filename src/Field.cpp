@@ -33,8 +33,8 @@ Field::Field(int width, int height) :
 
     for (int i = 0; i < m_width; ++ i) {
         for (int j = 0; j < m_height; ++ j) {
-            at(i, j) = Cell{Vector2f(i, j), Color::Green};
-            at(i, j).setBot(make_unique<Bot>(Vector2f(i, j), Color::Red));
+            emplace(i, j, Color::Green);
+            at(i, j).createBot(Color::Red);
         }
     }
 }

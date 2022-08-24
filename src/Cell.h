@@ -19,6 +19,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <SFML/Graphics.hpp>
 
 #include <memory>
+#include <utility>
 
 class Cell : public sf::Drawable {
 public:
@@ -31,6 +32,11 @@ public:
 
     void setBot(std::unique_ptr<Bot>&& bot) noexcept {
         m_bot = std::move(bot);
+    }
+
+    template<typename... Args>
+    void createBot(Args&&... args) noexcept {
+        m_bot = std::make_unique<Bot>(m_shape.getPosition(), std::forward<Args>(args)...);
     }
 
     void setShouldDrawOutline(bool shouldDrawOutline) noexcept {

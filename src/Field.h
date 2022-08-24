@@ -46,6 +46,12 @@ public:
         return m_cells[i * m_width + j];
     }
 
+    // automatically pass position to constructor
+    template<typename... Args>
+    void emplace(int i, int j, Args&&... args) noexcept {
+        at(i, j) = Cell{sf::Vector2f(i, j), std::forward<Args>(args)...};
+    }
+
     using iterator = std::vector<Cell>::iterator;
     using const_iterator = std::vector<Cell>::const_iterator;
 
