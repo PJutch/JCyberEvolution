@@ -3,6 +3,10 @@
 
 #include "Field.h"
 
+#include <imgui.h>
+#include <imgui-SFML.h>
+#include <imgui_sugar.hpp>
+
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
@@ -13,6 +17,8 @@ public:
     bool handleEvent(const sf::Event& event) noexcept;
 
     void update(bool keyboardAvailable, sf::Time elapsedTime) noexcept;
+
+    void showGui() noexcept;
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
 
@@ -27,6 +33,7 @@ private:
     float m_zoom;
 
     bool m_shouldRepeat;
+    bool m_shouldDrawBots;
 
     float m_baseZoomingChange;
     float m_baseMovingSpeed;

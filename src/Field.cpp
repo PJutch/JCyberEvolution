@@ -12,7 +12,7 @@ using sf::Vector2f;
 using std::make_unique;
 
 Field::Field(int width, int height) : 
-        m_width{width}, m_height{height}, m_cells{width * height}, m_shouldDrawBorder{true},
+        m_width{width}, m_height{height}, m_cells{width * height}, m_shouldDrawBorder{false},
         m_borderShape{{static_cast<float>(width), static_cast<float>(height)}} {
     m_borderShape.setFillColor(Color::Transparent);
     m_borderShape.setOutlineColor(Color::Black);

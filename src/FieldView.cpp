@@ -21,7 +21,7 @@ using std::pow;
 using std::fmod;
 
 FieldView::FieldView(FloatRect rect, FloatRect viewport, Field& field) : 
-        m_field{field}, m_view{rect}, m_zoom{1.0f}, m_shouldRepeat{false},
+        m_field{field}, m_view{rect}, m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true},
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     m_view.setViewport(viewport);
 }
@@ -41,6 +41,7 @@ bool FieldView::handleEvent(const Event& event) noexcept {
     for (auto& cell : m_field) {
         cell.setShouldDrawOutline(m_zoom < 0.2f);
         cell.setShouldDrawBotOutline(m_zoom < 0.1f);
+        cell.setShouldDrawBotDirection(m_zoom < 0.2f);
         cell.setShouldDrawBackground(m_zoom < 0.4f);
     }
 
@@ -104,4 +105,15 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
     }
 
     target.setView(prevView);
+}
+
+void FieldView::showGui() noexcept {
+    with_Window("View") {
+        if (ImGui::Checkbox("Show bots", &m_shouldDrawBots)) {
+            for (Cell& cell : m_field) cell.setShouldDrawBot(m_shouldDrawBots);
+        }
+        if (ImGui::Checkbox("Repeat", &m_shouldRepeat)) {
+            setShouldRepeat(m_shouldRepeat);
+        }
+    }
 }

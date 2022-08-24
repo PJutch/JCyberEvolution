@@ -63,7 +63,7 @@ int main(int argc, char** argv) {
     field.setPosition(64, 64);
 
     FieldView fieldView{{0.f, 0.f, 256.f, 256.f}, {0.f, 0.f, height / width, 1.f}, field};
-    fieldView.setShouldRepeat(true);
+    fieldView.setShouldRepeat(false);
 
     float baseMovingSpeed = 100.0f;
 
@@ -91,14 +91,16 @@ int main(int argc, char** argv) {
             }
         }
 
-        fieldView.update(!io.WantCaptureKeyboard, elapsedTime);
-        
         ImGui::SFML::Update(window, elapsedTime);
+
+        fieldView.update(!io.WantCaptureKeyboard, elapsedTime);
     
         window.clear(Color::White);
 
         window.draw(fieldView);
 
+        fieldView.showGui();
+        
         ImGui::ShowDemoWindow();
 
         ImGui::SFML::Render(window);

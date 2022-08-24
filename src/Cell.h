@@ -25,7 +25,11 @@ public:
     }
 
     void setShouldDrawBotOutline(bool shouldDrawOutline) noexcept {
-        m_bot->setShouldDrawOutline(shouldDrawOutline);
+        if (m_bot) m_bot->setShouldDrawOutline(shouldDrawOutline);
+    }
+
+    void setShouldDrawBotDirection(bool shouldBotDirection) noexcept {
+        if (m_bot) m_bot->setShouldDrawDirection(shouldBotDirection);
     }
 
     // work only if bot is visible
