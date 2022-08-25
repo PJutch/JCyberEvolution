@@ -60,9 +60,9 @@ int main(int argc, char** argv) {
     ImGuiIO& io = ImGui::GetIO();
 
     Field field{128, 128};
-    field.setPosition(64, 64);
+    field.setPosition(0, 0);
 
-    FieldView fieldView{{0.f, 0.f, 256.f, 256.f}, {0.f, 0.f, height / width, 1.f}, field};
+    FieldView fieldView{{0.f, 0.f, 128.f, 128.f}, {0.f, 0.f, height / width, 1.f}, field};
     fieldView.setShouldRepeat(false);
 
     float baseMovingSpeed = 100.0f;

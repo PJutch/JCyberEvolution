@@ -19,6 +19,7 @@ using sf::Vector2f;
 using sf::Color;
 using sf::RenderTarget;
 using sf::RenderStates;
+using sf::FloatRect;
 
 #include <memory>
 
@@ -30,6 +31,15 @@ Cell::Cell(Vector2f position, Color color) noexcept :
 }
 
 void Cell::draw(RenderTarget& target, RenderStates states) const noexcept {
+    FloatRect viewRect;
+    viewRect.width = target.getView().getSize().x;
+    viewRect.height = target.getView().getSize().y;
+    viewRect.left = target.getView().getCenter().x - viewRect.width / 2;
+    viewRect.top = target.getView().getCenter().y - viewRect.height / 2;
+
+    FloatRect rect = states.transform.transformRect(m_shape.getGlobalBounds());
+    if (!viewRect.intersects(rect)) return;
+
     if (m_bot && m_shouldDrawBot) {
         if (m_shouldDrawBackground) {
             target.draw(m_shape, states);
