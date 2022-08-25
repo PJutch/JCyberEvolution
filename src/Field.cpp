@@ -14,6 +14,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include "Field.h"
 #include "Cell.h"
 #include "Bot.h"
+#include "Species.h"
 
 #include <SFML/Graphics.hpp>
 using sf::RenderTarget;
@@ -29,6 +30,7 @@ using std::uniform_real_distribution;
 
 #include <memory>
 using std::make_unique;
+using std::make_shared;
 
 #include <limits>
 using std::numeric_limits;
@@ -63,10 +65,8 @@ void Field::randomFill(float density) noexcept {
 
     for (Cell& cell : m_cells) {
         if (uniform_real_distribution<float>(0.f, 1.f)(m_randomEngine) < density) {
-            Color color{uniform_int_distribution<Uint32>()(m_randomEngine)};
-            color.a = numeric_limits<Uint8>::max();
             int rotation = uniform_int_distribution(0, 7)(m_randomEngine);
-            cell.createBot(color, rotation * 45.f);
+            cell.createBot(rotation * 45.f, Species::createRandom(m_randomEngine));
         }
     }
 }

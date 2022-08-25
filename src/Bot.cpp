@@ -20,13 +20,14 @@ using sf::Color;
 using sf::RenderTarget;
 using sf::RenderStates;
 
-Bot::Bot(Vector2f position, Color color, float rotation) noexcept : 
+Bot::Bot(Vector2f position, float rotation, std::shared_ptr<Species> species) noexcept : 
+        m_instructionPointer{0}, m_species{species}, 
         m_shape{{0.8f, 0.8f}}, m_directionShape{{0.1f, 0.3f}}, m_shouldDrawDirection{true} {
-    Color outlineColor = getOutlineColorFor(color);
+    Color outlineColor = getOutlineColorFor(species->getColor());
 
     m_shape.setOrigin(-0.1f, -0.1f);
     m_shape.setPosition(position);
-    m_shape.setFillColor(color);
+    m_shape.setFillColor(species->getColor());
     m_shape.setOutlineColor(outlineColor);
     m_shape.setOutlineThickness(0);
 

@@ -14,11 +14,15 @@ If not, see <https://www.gnu.org/licenses/>. */
 #ifndef BOT_H_
 #define BOT_H_
 
+#include "Species.h"
+
 #include <SFML/Graphics.hpp>
+
+#include <memory>
 
 class Bot : public sf::Drawable {
 public:
-    Bot(sf::Vector2f position, sf::Color color, float rotation) noexcept;
+    Bot(sf::Vector2f position, float rotation, std::shared_ptr<Species> species) noexcept;
 
     sf::Vector2f getSize() const noexcept {
         return m_shape.getSize();
@@ -37,6 +41,9 @@ public:
         m_shouldDrawDirection = shouldDrawOutline;
     }
 private:
+    int m_instructionPointer;
+    std::shared_ptr<Species> m_species;
+
     sf::RectangleShape m_shape;
     sf::RectangleShape m_directionShape;
 
