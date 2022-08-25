@@ -21,11 +21,10 @@ using sf::RenderTarget;
 using sf::RenderStates;
 
 Bot::Bot(Vector2f position, Color color, float rotation) noexcept : 
-        m_shape{{0.7f, 0.7f}}, m_directionShape{{0.1f, 0.3f}}, m_shouldDrawDirection{false
-        } {
+        m_shape{{0.8f, 0.8f}}, m_directionShape{{0.1f, 0.3f}}, m_shouldDrawDirection{true} {
     Color outlineColor = getOutlineColorFor(color);
 
-    m_shape.setOrigin(-0.15f, -0.15f);
+    m_shape.setOrigin(-0.1f, -0.1f);
     m_shape.setPosition(position);
     m_shape.setFillColor(color);
     m_shape.setOutlineColor(outlineColor);

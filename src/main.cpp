@@ -36,6 +36,9 @@ using sf::VideoMode;
 using sf::Clipboard;
 namespace Style = sf::Style;
 
+#include <random>
+using std::random_device;
+
 #include <iostream>
 using std::cout;
 using std::endl;
@@ -59,7 +62,9 @@ int main(int argc, char** argv) {
     ImGui::SFML::Init(window);
     ImGuiIO& io = ImGui::GetIO();
 
-    Field field{128, 128};
+    random_device randomDevice;
+
+    Field field{128, 128, randomDevice()};
     field.setPosition(0, 0);
 
     FieldView fieldView{{0.f, 0.f, 128.f, 128.f}, {0.f, 0.f, height / width, 1.f}, field};

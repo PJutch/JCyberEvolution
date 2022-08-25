@@ -34,6 +34,10 @@ public:
         m_bot = std::move(bot);
     }
 
+    void deleteBot() noexcept {
+        m_bot.reset(nullptr);
+    }
+
     template<typename... Args>
     void createBot(Args&&... args) noexcept {
         m_bot = std::make_unique<Bot>(m_shape.getPosition(), std::forward<Args>(args)...);

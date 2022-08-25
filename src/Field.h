@@ -19,10 +19,11 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <SFML/Graphics.hpp>
 
 #include <vector>
+#include <random>
 
 class Field : public sf::Transformable, public sf::Drawable {
 public:
-    Field(int width, int height);
+    Field(int width, int height, uint64_t seed);
 
     int getWidth() const noexcept {
         return m_width;
@@ -34,6 +35,10 @@ public:
 
     sf::Vector2f getSize() const noexcept {
         return sf::Vector2f(m_width, m_height);
+    }
+
+    std::mt19937_64& getRandomEngine() noexcept {
+        return m_randomEngine;
     }
 
     // unsafe, check indices by yourself
@@ -79,6 +84,9 @@ public:
         return cend();
     }
 
+    void randomFill(float density) noexcept;
+    void clear() noexcept;
+
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
 
     void setShouldDrawBorder(bool shouldDrawBorder) noexcept {
@@ -92,6 +100,8 @@ private:
 
     bool m_shouldDrawBorder;
     sf::RectangleShape m_borderShape;
+
+    std::mt19937_64 m_randomEngine;
 };
 
 #endif

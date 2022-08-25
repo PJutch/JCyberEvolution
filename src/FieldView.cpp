@@ -34,8 +34,8 @@ using std::pow;
 using std::fmod;
 
 FieldView::FieldView(FloatRect rect, FloatRect viewport, Field& field) : 
-        m_field{field}, m_view{rect}, m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true},
-        m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
+        m_field{field}, m_view{rect}, m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
+        m_fillDensity{0.5f}, m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     m_view.setViewport(viewport);
 }
 
@@ -50,11 +50,6 @@ bool FieldView::handleEvent(const Event& event) noexcept {
     m_zoom = clamp(m_zoom, 0.01f, 1.f);
 
     m_view.zoom(m_zoom);
-
-    for (auto& cell : m_field) {
-        cell.setShouldDrawBotDirection(m_zoom < 0.3f);
-        cell.setShouldDrawBackground(m_zoom < 0.4f);
-    }
 
     return true;
 }
@@ -125,6 +120,16 @@ void FieldView::showGui() noexcept {
         }
         if (ImGui::Checkbox("Repeat", &m_shouldRepeat)) {
             setShouldRepeat(m_shouldRepeat);
+        }
+    }
+    with_Window("Field") {
+        ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
+        if (ImGui::Button("Random fill")) {
+            m_field.randomFill(m_fillDensity);
+        }
+
+        if (ImGui::Button("Clear")) {
+            m_field.clear();
         }
     }
 }

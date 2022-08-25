@@ -48,6 +48,8 @@ private:
     bool m_shouldRepeat;
     bool m_shouldDrawBots;
 
+    float m_fillDensity;
+
     float m_baseZoomingChange;
     float m_baseMovingSpeed;
     float m_speedModificator;
