@@ -18,7 +18,5 @@ There are:
 - [Dear ImGui syntactic sugar](https://github.com/mnesarco/imgui_sugar)
 
 ## Build
-You can build it with CMake.
-Currently CMakeLists.txt supports only release build 
-and you need to copy the contents of extlibs/SFML/bin to the folder with executable.
-It will be improved in the future.
+You can build this project with CMake.
+After build, copy the contents of extlibs/SFML/bin to the folder with executable.
