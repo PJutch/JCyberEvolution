@@ -34,7 +34,7 @@ Field::Field(int width, int height) :
     for (int i = 0; i < m_width; ++ i) {
         for (int j = 0; j < m_height; ++ j) {
             emplace(i, j, Color::Green);
-            at(i, j).createBot(Color::Red);
+            at(i, j).createBot(Color::Red, 45.f);
         }
     }
 }

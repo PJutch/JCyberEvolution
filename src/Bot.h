@@ -18,7 +18,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 class Bot : public sf::Drawable {
 public:
-    Bot(sf::Vector2f position, sf::Color color) noexcept;
+    Bot(sf::Vector2f position, sf::Color color, float rotation) noexcept;
 
     sf::Vector2f getSize() const noexcept {
         return m_shape.getSize();
