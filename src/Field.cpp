@@ -59,13 +59,15 @@ Field::Field(int width, int height, uint64_t seed) :
     }
 
     auto species = make_shared<Species>(Color::Red);
-    for (int i = 0; i < 256; ++ i) {
-        (*species)[i] = 1;
-    }
-    (*species)[14] = 5;
-    (*species)[15] = 3;
-    (*species)[16] = 4;
-    at(16, 16).createBot(2, species);
+    for (int i = 0; i < 4; ++ i) (*species)[i] = 3;
+    for (int i = 4; i < 256; ++ i) (*species)[i] = 1;
+    (*species)[14] = 7;
+    (*species)[15] = 0;
+    (*species)[16] = 0;
+    (*species)[17] = 0;
+    (*species)[18] = 0;
+    (*species)[19] = 6;
+    at(16, 16).createBot(0, species);
 }
 
 Vector2i Field::getSafeIndices(int i, int j) const noexcept {
@@ -109,7 +111,7 @@ void Field::update() noexcept {
                 case 1:
                     if (!at(i, j).hasBot()) {
                         at(i, j).setBot(make_unique<Bot>(bot));
-                        cell.deleteBot();
+                        cell.setShouldDie(true);
                     }
                     break;
                 case 2:
@@ -123,7 +125,15 @@ void Field::update() noexcept {
                 default: break;
                 }
             }
+
+            if (decisions[i * m_width + j].instruction == 3) {
+                at(i, j).setShouldDie(true);
+            }
         }
+    }
+
+    for (Cell& cell : m_cells) {
+        cell.checkShouldDie();
     }
 
     ++ m_epoch;

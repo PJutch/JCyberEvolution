@@ -46,11 +46,22 @@ public:
 
     void deleteBot() noexcept {
         m_bot.reset(nullptr);
-    }
+    }  
 
     template<typename... Args>
     void createBot(Args&&... args) noexcept {
         m_bot = std::make_unique<Bot>(m_shape.getPosition(), std::forward<Args>(args)...);
+    }
+
+    void setShouldDie(bool shouldDie) noexcept {
+        m_shouldDie = shouldDie;
+    }
+
+    void checkShouldDie() noexcept {
+        if (m_shouldDie) {
+            deleteBot();
+            m_shouldDie = false;
+        }
     }
 
     void setShouldDrawOutline(bool shouldDrawOutline) noexcept {
@@ -76,9 +87,10 @@ public:
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
 private:
-    sf::RectangleShape m_shape;
     std::unique_ptr<Bot> m_bot;
+    bool m_shouldDie;
 
+    sf::RectangleShape m_shape;
     bool m_shouldDrawBackground;
     bool m_shouldDrawBot;
 

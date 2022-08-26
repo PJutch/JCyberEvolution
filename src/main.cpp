@@ -59,6 +59,7 @@ int main(int argc, char** argv) {
 
     RenderWindow window{videoMode, "JCyberEvolution", Style::Fullscreen};
     window.setVerticalSyncEnabled(true);
+    // window.setFramerateLimit(1);
 
     ImGui::SFML::Init(window);
     ImGuiIO& io = ImGui::GetIO();

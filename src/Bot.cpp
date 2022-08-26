@@ -36,11 +36,11 @@ Bot::Bot(Vector2f position, int rotation, std::shared_ptr<Species> species) noex
     m_directionShape.setOrigin(0.05f, 0.25f);
     m_directionShape.setPosition(position + Vector2f(0.5f, 0.5f));
     m_directionShape.setFillColor(outlineColor);
-    m_directionShape.setRotation(rotation * 45.f);
+    m_directionShape.setRotation(rotation * 45.f + 180.f);
 }
 
 Decision Bot::makeDecision() noexcept {
-    Decision decision{0};
+    Decision decision{0}; // skip
 
     bool run = true;
     int executedCommands = 0;
@@ -51,23 +51,33 @@ Decision Bot::makeDecision() noexcept {
             run = false;
             ++ m_instructionPointer;
             break;
-        case 2: // Rotate left
+        case 2: // Rotate right
             if (++ m_rotation == 8) {
                 m_rotation = 0;
             }
-            m_directionShape.setRotation(m_rotation * 45.f);
+            m_directionShape.setRotation(m_rotation * 45.f + 180.f);
             ++ m_instructionPointer;
             break;
-        case 3: // Rotate right
+        case 3: // Rotate left
             if (-- m_rotation == -1) {
                 m_rotation = 7;
             }
-            m_directionShape.setRotation(m_rotation * 45.f);
+            m_directionShape.setRotation(m_rotation * 45.f + 180.f);
             ++ m_instructionPointer;
             break;
         case 4: // jump to start
             m_instructionPointer = 0;
-        case 5: // multiply
+        case 5: // skip
+            decision = {0};
+            run = false;
+            ++ m_instructionPointer;
+            break;
+        case 6: // die
+            decision = {3};
+            run = false;
+            ++ m_instructionPointer;
+            break;
+        case 7: // multiply
             decision = {2};
             run = false;
             ++ m_instructionPointer;

@@ -24,7 +24,8 @@ using sf::FloatRect;
 #include <memory>
 
 Cell::Cell(Vector2f position, Color color) noexcept : 
-        m_shape{{1, 1}}, m_bot{nullptr}, m_shouldDrawBackground{true}, m_shouldDrawBot{true} {
+        m_bot{nullptr}, m_shouldDie{false}, 
+        m_shape{{1, 1}}, m_shouldDrawBackground{true}, m_shouldDrawBot{true} {
     m_shape.setPosition(position);
     m_shape.setFillColor(color);
     m_shape.setOutlineColor(getOutlineColorFor(color));
