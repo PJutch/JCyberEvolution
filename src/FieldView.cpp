@@ -121,6 +121,9 @@ void FieldView::showGui() noexcept {
         if (ImGui::Checkbox("Repeat", &m_shouldRepeat)) {
             setShouldRepeat(m_shouldRepeat);
         }
+         if (ImGui::Button("To center")) {
+            m_view.setCenter(m_field.getPosition() + m_field.getSize() / 2.f);
+        }
     }
     with_Window("Field") {
         ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
