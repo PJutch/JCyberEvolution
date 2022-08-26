@@ -41,6 +41,12 @@ public:
         return m_randomEngine;
     }
 
+    int getEpoch() const noexcept {
+        return m_epoch;
+    }
+
+    int computePopulation() const noexcept;
+
     int getLifetime() const noexcept {
         return m_lifetime;
     }
@@ -108,6 +114,7 @@ private:
 
     std::vector<Cell> m_cells;
     int m_epoch;
+
     int m_lifetime;
 
     bool m_shouldDrawBorder;

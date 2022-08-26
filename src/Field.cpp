@@ -47,7 +47,7 @@ using std::abs;
 
 Field::Field(int width, int height, uint64_t seed) : 
         m_width{width}, m_height{height}, m_cells{width * height}, 
-        m_lifetime{256}, m_epoch{0}, m_shouldDrawBorder{false},
+        m_epoch{0}, m_lifetime{256}, m_shouldDrawBorder{false},
         m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);
@@ -130,7 +130,7 @@ void Field::update() noexcept {
                 }
             }
 
-            if (decisions[i * m_width + j].instruction == 3) {
+            if (decisions[i * m_width + j].instruction == 3 && at(i, j).isAlive()) {
                 at(i, j).setShouldDie(true);
             }
         }
@@ -141,6 +141,14 @@ void Field::update() noexcept {
     }
 
     ++ m_epoch;
+}
+
+int Field::computePopulation() const noexcept {
+    int population = 0;
+    for (const Cell& cell : m_cells) {
+        if (cell.hasBot()) ++ population;
+    }
+    return population;
 }
 
 void Field::draw(RenderTarget& target, RenderStates states) const noexcept {
@@ -166,6 +174,8 @@ void Field::randomFill(float density) noexcept {
 }
 
 void Field::clear() noexcept {
+    m_epoch = 0;
+
     for (Cell& cell : m_cells) {
         cell.deleteBot();
     }

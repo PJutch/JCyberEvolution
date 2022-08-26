@@ -13,6 +13,10 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 #include "FieldView.h"
 
+#include <imgui.h>
+#include <imgui-SFML.h>
+#include <imgui_sugar.hpp>
+
 #include <SFML/Graphics.hpp>
 using sf::FloatRect;
 using sf::Color;
@@ -29,13 +33,23 @@ using sf::Time;
 #include <algorithm>
 using std::clamp;
 
+#include <array>
+using std::array;
+
+#include <algorithm>
+using std::ranges::copy;
+using std::ranges::fill;
+
 #include <cmath>
 using std::pow;
 using std::fmod;
 
+const int POPULATION_HISTORY_SIZE = 128;
+
 FieldView::FieldView(FloatRect rect, Vector2f screenSize, Field& field) : 
         m_field{field}, m_view{rect}, m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
-        m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false},
+        m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false}, 
+        m_populationHistory(128, field.computePopulation()),
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     resize(screenSize.x, screenSize.y);
 }
@@ -65,6 +79,14 @@ void FieldView::resize(float width, float height) noexcept {
         m_view.setViewport({0.f, 0.f, height / width, 1.f});
     } else {
         m_view.setViewport({0.f, 0.f, 1.f, width / height});
+    }
+}
+
+void FieldView::updateField() noexcept {
+    for (int i = 0; i < getSimulationSpeed(); ++ i) {
+        m_field.update();
+        m_populationHistory.pop_front();
+        m_populationHistory.push_back(m_field.computePopulation());
     }
 }
 
@@ -140,16 +162,32 @@ void FieldView::showGui() noexcept {
         }
         ImGui::SliderInt("Simulation speed", &m_simulationSpeed, 0, 64);
     }
+
     with_Window("Field") {
         ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
         if (ImGui::Button("Random fill")) {
             m_field.randomFill(m_fillDensity);
+            fill(m_populationHistory, m_field.computePopulation());
         }
 
         if (ImGui::Button("Clear")) {
             m_field.clear();
+            fill(m_populationHistory, 0);
         }
     }
+
+    with_Window("Statistics") {
+        ImGui::Text("Epoch: %i", m_field.getEpoch());
+        ImGui::Text("Population: %i", m_populationHistory.back());
+
+        array<float, POPULATION_HISTORY_SIZE> populationHistory;
+        for (int i = 0; i < POPULATION_HISTORY_SIZE; ++ i) {
+            populationHistory[i] = static_cast<float>(m_populationHistory[i]);
+        }
+        ImGui::PlotLines("", populationHistory.data(), POPULATION_HISTORY_SIZE, 
+                         0, NULL, 0.f, m_field.getWidth() * m_field.getHeight(), ImVec2(0, 80.0f));
+    }
+
     with_Window("Life cycle") {
         int lifetime = m_field.getLifetime();
         if (ImGui::SliderInt("Lifetime", &lifetime, 0, 1024)) {

@@ -23,6 +23,8 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
+#include <deque>
+
 class FieldView : public sf::Drawable {
 public:
     FieldView(sf::FloatRect rect, sf::Vector2f screenSize, Field& field);
@@ -38,6 +40,8 @@ public:
         }
         return false;
     }
+
+    void updateField() noexcept;
 
     void update(bool keyboardAvailable, sf::Time elapsedTime) noexcept;
 
@@ -65,6 +69,8 @@ private:
     float m_fillDensity;
     int m_simulationSpeed;
     bool m_paused;
+
+    std::deque<int> m_populationHistory;
 
     float m_baseZoomingChange;
     float m_baseMovingSpeed;

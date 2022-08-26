@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
             }
         }
 
-        for (int i = 0; i < fieldView.getSimulationSpeed(); ++ i) field.update();
+        fieldView.updateField();
 
         ImGui::SFML::Update(window, elapsedTime);
         fieldView.update(!io.WantCaptureKeyboard, elapsedTime);
