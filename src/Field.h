@@ -54,7 +54,7 @@ public:
     // automatically pass position to constructor
     template<typename... Args>
     void emplace(int i, int j, Args&&... args) noexcept {
-        at(i, j) = Cell{sf::Vector2f(i, j), std::forward<Args>(args)...};
+        at(i, j) = Cell{sf::Vector2f(j, i), std::forward<Args>(args)...};
     }
 
     using iterator = std::vector<Cell>::iterator;
@@ -87,6 +87,8 @@ public:
     void randomFill(float density) noexcept;
     void clear() noexcept;
 
+    void update() noexcept;
+
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
 
     void setShouldDrawBorder(bool shouldDrawBorder) noexcept {
@@ -102,6 +104,8 @@ private:
     sf::RectangleShape m_borderShape;
 
     std::mt19937_64 m_randomEngine;
+
+    sf::Vector2i getSafeIndices(int i, int j) const noexcept;
 };
 
 #endif

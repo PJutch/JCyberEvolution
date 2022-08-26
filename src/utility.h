@@ -16,6 +16,19 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 #include <SFML/Graphics.hpp>
 
+#include <cmath>
+using std::abs;
+
 sf::Color getOutlineColorFor(sf::Color color) noexcept;
+
+sf::Vector2i getOffsetForRotation(int rotation) noexcept;
+
+inline bool areOpposite(int rotation1, int rotation2) noexcept {
+    return abs(rotation1 - rotation2) == 4;
+}
+
+inline int getOppositeRotation(int rotation) noexcept {
+    return (rotation + 4) % 8;
+}
 
 #endif

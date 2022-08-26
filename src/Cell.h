@@ -30,8 +30,18 @@ public:
         return m_shape.getFillColor();
     }
 
+    bool hasBot() const noexcept {
+        return static_cast<bool>(m_bot);
+    }
+
+    // unsafe
+    Bot& getBot() noexcept {
+        return *m_bot;
+    }
+
     void setBot(std::unique_ptr<Bot>&& bot) noexcept {
         m_bot = std::move(bot);
+        m_bot->setPosition(m_shape.getPosition());
     }
 
     void deleteBot() noexcept {

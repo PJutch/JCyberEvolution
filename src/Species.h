@@ -13,6 +13,16 @@ public:
 
     static std::shared_ptr<Species> createRandom(std::mt19937_64& randomEngine) noexcept;
 
+    // unsafe, check index by yourself
+    uint16_t& operator[] (int i) noexcept {
+        return m_genome[i];
+    }
+
+    // unsafe, check index by yourself
+    uint16_t operator[] (int i) const noexcept {
+        return m_genome[i];
+    }
+
     sf::Color getColor() const noexcept {
         return m_color;
     }

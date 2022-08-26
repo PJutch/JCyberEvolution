@@ -28,6 +28,7 @@ using sf::FloatRect;
 #include <SFML/System.hpp>
 using sf::Clock;
 using sf::Time;
+using sf::seconds;
 
 #include <SFML/Window.hpp>
 using sf::Event;
@@ -49,7 +50,7 @@ using std::string;
 #include <algorithm>
 using std::clamp;
 
-#include <stdlib.h>
+#include <cstdlib>
 
 int main(int argc, char** argv) {
     auto videoMode = VideoMode::getDesktopMode();
@@ -73,6 +74,7 @@ int main(int argc, char** argv) {
     float baseMovingSpeed = 100.0f;
 
     Clock clock;
+    Time timeBeforeUpdate = Time::Zero;
     while (window.isOpen()) {
         Time elapsedTime = clock.restart();
 
@@ -96,8 +98,9 @@ int main(int argc, char** argv) {
             }
         }
 
-        ImGui::SFML::Update(window, elapsedTime);
+        field.update();
 
+        ImGui::SFML::Update(window, elapsedTime);
         fieldView.update(!io.WantCaptureKeyboard, elapsedTime);
     
         window.clear(Color::White);
@@ -105,9 +108,7 @@ int main(int argc, char** argv) {
         window.draw(fieldView);
 
         fieldView.showGui();
-        
         ImGui::ShowDemoWindow();
-
         ImGui::SFML::Render(window);
 
         window.display();

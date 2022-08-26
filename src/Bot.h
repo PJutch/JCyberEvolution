@@ -15,6 +15,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 #define BOT_H_
 
 #include "Species.h"
+#include "Decision.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -22,11 +23,22 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 class Bot : public sf::Drawable {
 public:
-    Bot(sf::Vector2f position, float rotation, std::shared_ptr<Species> species) noexcept;
+    Bot(sf::Vector2f position, int rotation, std::shared_ptr<Species> species) noexcept;
 
     sf::Vector2f getSize() const noexcept {
         return m_shape.getSize();
     }
+
+    int getRotation() const noexcept {
+        return m_rotation;
+    }
+
+    void setPosition(sf::Vector2f position) noexcept {
+        m_shape.setPosition(position);
+        m_directionShape.setPosition(position + sf::Vector2f(0.5f, 0.5f));
+    }
+
+    Decision makeDecision() noexcept;
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override {
         target.draw(m_shape, states);
@@ -43,6 +55,8 @@ public:
 private:
     int m_instructionPointer;
     std::shared_ptr<Species> m_species;
+
+    int m_rotation;
 
     sf::RectangleShape m_shape;
     sf::RectangleShape m_directionShape;

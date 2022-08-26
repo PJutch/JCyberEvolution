@@ -15,6 +15,9 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 #include <SFML/Graphics.hpp>
 using sf::Color;
+using sf::Vector2i;
+
+#include <cassert>
 
 Color getOutlineColorFor(Color color) noexcept {
     Color outlineColor;
@@ -26,4 +29,19 @@ Color getOutlineColorFor(Color color) noexcept {
     }
     outlineColor.a = color.a;
     return outlineColor;
+}
+
+Vector2i getOffsetForRotation(int rotation) noexcept {
+    switch (rotation) {
+    case 0: return { 0,  1};
+    case 1: return { 1,  1};
+    case 2: return { 1,  0};
+    case 3: return { 1, -1};
+    case 4: return { 0, -1};
+    case 5: return {-1, -1};
+    case 6: return {-1,  0};
+    case 7: return {-1,  1};
+    }
+    assert(false && "impossible rotation");
+    return {0, 0};
 }
