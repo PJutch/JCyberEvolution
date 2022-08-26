@@ -33,17 +33,17 @@ using std::clamp;
 using std::pow;
 using std::fmod;
 
-FieldView::FieldView(FloatRect rect, FloatRect viewport, Field& field) : 
+FieldView::FieldView(FloatRect rect, Vector2f screenSize, Field& field) : 
         m_field{field}, m_view{rect}, m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
         m_fillDensity{0.5f}, 
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
-    m_view.setViewport(viewport);
+    resize(screenSize.x, screenSize.y);
 }
 
-bool FieldView::handleEvent(const Event& event) noexcept {
+bool FieldView::handleMouseWheelScrollEvent(const Event::MouseWheelScrollEvent& event) noexcept {
     m_view.zoom(1 / m_zoom);
 
-    float zoomChange = -event.mouseWheelScroll.delta;
+    float zoomChange = -event.delta;
     if (Keyboard::isKeyPressed(Keyboard::LShift)) zoomChange *= m_speedModificator;
     if (Keyboard::isKeyPressed(Keyboard::LControl)) zoomChange /= m_speedModificator;
 
@@ -53,6 +53,19 @@ bool FieldView::handleEvent(const Event& event) noexcept {
     m_view.zoom(m_zoom);
 
     return true;
+}
+
+bool FieldView::handleResizeEvent(const Event::SizeEvent& event) noexcept {
+    resize(event.width, event.height);
+    return true;
+}
+
+void FieldView::resize(float width, float height) noexcept {
+    if (width > height)  {
+        m_view.setViewport({0.f, 0.f, height / width, 1.f});
+    } else {
+        m_view.setViewport({0.f, 0.f, 1.f, width / height});
+    }
 }
 
 void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {

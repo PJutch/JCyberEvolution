@@ -54,6 +54,7 @@ using std::clamp;
 
 int main(int argc, char** argv) {
     auto videoMode = VideoMode::getDesktopMode();
+    // VideoMode videoMode(640, 480);
     float width = static_cast<float>(videoMode.width);
     float height = static_cast<float>(videoMode.height);
 
@@ -69,8 +70,8 @@ int main(int argc, char** argv) {
     Field field{128, 128, randomDevice()};
     field.setPosition(0, 0);
 
-    FieldView fieldView{{0.f, 0.f, 128.f, 128.f}, {0.f, 0.f, height / width, 1.f}, field};
-    fieldView.setShouldRepeat(false);
+    FieldView fieldView{{0.f, 0.f, 128.f, 128.f}, {width, height}, field};
+    // fieldView.setShouldRepeat(false);
 
     float baseMovingSpeed = 100.0f;
 
@@ -94,7 +95,10 @@ int main(int argc, char** argv) {
                     break;
                 case Event::MouseWheelScrolled:
                     if (io.WantCaptureMouse) break;
-                    fieldView.handleEvent(event);
+                    fieldView.handleMouseWheelScrollEvent(event.mouseWheelScroll);
+                    break;
+                case Event::Resized:
+                    fieldView.handleResizeEvent(event.size);
                     break;
             }
         }

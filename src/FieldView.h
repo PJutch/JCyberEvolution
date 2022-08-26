@@ -25,9 +25,11 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 class FieldView : public sf::Drawable {
 public:
-    FieldView(sf::FloatRect rect, sf::FloatRect viewport, Field& field);
+    FieldView(sf::FloatRect rect, sf::Vector2f screenSize, Field& field);
 
-    bool handleEvent(const sf::Event& event) noexcept;
+    bool handleMouseWheelScrollEvent(const sf::Event::MouseWheelScrollEvent& event) noexcept;
+
+    bool handleResizeEvent(const sf::Event::SizeEvent& event) noexcept;
 
     void update(bool keyboardAvailable, sf::Time elapsedTime) noexcept;
 
@@ -53,6 +55,8 @@ private:
     float m_baseZoomingChange;
     float m_baseMovingSpeed;
     float m_speedModificator;
+
+    void resize(float width, float height) noexcept;
 };
 
 #endif
