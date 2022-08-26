@@ -33,6 +33,10 @@ public:
         return m_rotation;
     }
 
+    std::shared_ptr<Species> getSpecies() const noexcept {
+        return m_species;
+    }
+
     void setPosition(sf::Vector2f position) noexcept {
         m_shape.setPosition(position);
         m_directionShape.setPosition(position + sf::Vector2f(0.5f, 0.5f));

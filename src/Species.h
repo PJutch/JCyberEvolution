@@ -7,11 +7,14 @@
 #include <array>
 #include <memory>
 
-class Species {
+class Species : public std::enable_shared_from_this<Species> {
 public:
     Species(sf::Color color) noexcept;
 
     static std::shared_ptr<Species> createRandom(std::mt19937_64& randomEngine) noexcept;
+
+    // return this if no mutation
+    std::shared_ptr<Species> createMutant(std::mt19937_64& randomEngine, int epoch) noexcept;
 
     // unsafe, check index by yourself
     uint16_t& operator[] (int i) noexcept {

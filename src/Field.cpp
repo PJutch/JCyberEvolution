@@ -37,6 +37,7 @@ using std::vector;
 #include <memory>
 using std::make_unique;
 using std::make_shared;
+using std::shared_ptr;
 
 #include <limits>
 using std::numeric_limits;
@@ -45,7 +46,7 @@ using std::numeric_limits;
 using std::abs;
 
 Field::Field(int width, int height, uint64_t seed) : 
-        m_width{width}, m_height{height}, m_cells{width * height}, m_shouldDrawBorder{false},
+        m_width{width}, m_height{height}, m_cells{width * height}, m_epoch(0), m_shouldDrawBorder{false},
         m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);
     m_borderShape.setOutlineColor(Color::Black);
@@ -100,19 +101,23 @@ void Field::update() noexcept {
                 Cell& cell = m_cells[index];
                 if (!cell.hasBot()) continue;
 
+                Bot& bot = cell.getBot();
                 // Skip if not rotated to current cell
-                if (!areOpposite(cell.getBot().getRotation(), rotation % 8)) continue;
+                if (!areOpposite(bot.getRotation(), rotation % 8)) continue;
 
                 switch (decision.instruction) {
                 case 1:
                     if (!at(i, j).hasBot()) {
-                        at(i, j).setBot(make_unique<Bot>(cell.getBot()));
+                        at(i, j).setBot(make_unique<Bot>(bot));
                         cell.deleteBot();
                     }
                     break;
                 case 2:
                     if (!at(i, j).hasBot()) {
-                        at(i, j).setBot(make_unique<Bot>(cell.getBot()));
+                        shared_ptr<Species> parent = bot.getSpecies();
+                        shared_ptr<Species> offspring = parent->createMutant(m_randomEngine, m_epoch);
+
+                        at(i, j).createBot(bot.getRotation(), offspring);
                     }
                     break;
                 default: break;
@@ -120,6 +125,8 @@ void Field::update() noexcept {
             }
         }
     }
+
+    ++ m_epoch;
 }
 
 void Field::draw(RenderTarget& target, RenderStates states) const noexcept {

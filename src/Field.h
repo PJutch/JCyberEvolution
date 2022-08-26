@@ -99,6 +99,7 @@ private:
     int m_height;
 
     std::vector<Cell> m_cells;
+    int m_epoch;
 
     bool m_shouldDrawBorder;
     sf::RectangleShape m_borderShape;
