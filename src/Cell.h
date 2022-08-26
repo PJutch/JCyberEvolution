@@ -64,6 +64,10 @@ public:
         }
     }
 
+    bool isAlive() const noexcept {
+        return hasBot() && !m_shouldDie;
+    }
+
     void setShouldDrawOutline(bool shouldDrawOutline) noexcept {
         m_shape.setOutlineThickness(shouldDrawOutline ? -0.05f : 0.f);
     }

@@ -62,13 +62,10 @@ Field::Field(int width, int height, uint64_t seed) :
 
     auto species = make_shared<Species>(Color::Red);
     for (int i = 0; i < 4; ++ i) (*species)[i] = 3;
-    for (int i = 4; i < 256; ++ i) (*species)[i] = 1;
-    (*species)[14] = 7;
-    (*species)[15] = 0;
-    (*species)[16] = 0;
-    (*species)[17] = 0;
-    (*species)[18] = 0;
-    (*species)[19] = 6;
+    (*species)[4] = 8;
+    for (int i = 5; i < 10; ++ i) (*species)[i] = 1;
+    (*species)[11] = 7;
+    for (int i = 12; i < 256; ++ i) (*species)[i] = 0;
     at(16, 16).createBot(0, species);
 }
 
@@ -122,6 +119,11 @@ void Field::update() noexcept {
                         shared_ptr<Species> offspring = parent->createMutant(m_randomEngine, m_epoch);
 
                         at(i, j).createBot(bot.getRotation(), offspring);
+                    }
+                    break;
+                case 4:
+                    if (at(i, j).isAlive()) {
+                        at(i, j).setShouldDie(true);
                     }
                     break;
                 default: break;

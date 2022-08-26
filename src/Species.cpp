@@ -56,23 +56,23 @@ shared_ptr<Species> Species::createMutant(mt19937_64& randomEngine, int epoch) n
 
             if (canonicalDistribution(randomEngine) 
                 < sin(static_cast<double>(epoch)) / 2.0 + 0.5) {
-                if (result->m_color.r != numeric_limits<Uint8>::max()) result->m_color.r += 8;
+                if (result->m_color.r != numeric_limits<Uint8>::max()) result->m_color.r += 1;
             } else {
-                if (result->m_color.r != 0) result->m_color.r -= 8;
+                if (result->m_color.r != 0) result->m_color.r -= 1;
             }
 
             if (canonicalDistribution(randomEngine) 
                 < static_cast<double>(result->m_genome[i]) / 8.0) {
-                if (result->m_color.g != numeric_limits<Uint8>::max()) result->m_color.g += 8;
+                if (result->m_color.g != numeric_limits<Uint8>::max()) result->m_color.g += 1;
             } else {
-                if (result->m_color.g != 0) result->m_color.g -= 8;
+                if (result->m_color.g != 0) result->m_color.g -= 1;
             }
 
             if (canonicalDistribution(randomEngine) 
                 < static_cast<double>(i) / 255.0) {
-                if (result->m_color.b != numeric_limits<Uint8>::max()) result->m_color.b += 8;
+                if (result->m_color.b != numeric_limits<Uint8>::max()) result->m_color.b += 1;
             } else {
-                if (result->m_color.b != 0) result->m_color.b -= 8;
+                if (result->m_color.b != 0) result->m_color.b -= 1;
             }
         }
     }

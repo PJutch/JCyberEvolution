@@ -47,20 +47,20 @@ Decision Bot::makeDecision(int lifetime) noexcept {
     bool run = true;
     int executedCommands = 0;
     while (run && executedCommands < 10) {
-        switch (((*m_species)[m_instructionPointer]) % 8) {
-        case 1: // Move
+        switch (((*m_species)[m_instructionPointer]) % 16) {
+        case 1: // move
             decision = {1};
             run = false;
             ++ m_instructionPointer;
             break;
-        case 2: // Rotate right
+        case 2: // rotate right
             if (++ m_rotation == 8) {
                 m_rotation = 0;
             }
             m_directionShape.setRotation(m_rotation * 45.f + 180.f);
             ++ m_instructionPointer;
             break;
-        case 3: // Rotate left
+        case 3: // rotate left
             if (-- m_rotation == -1) {
                 m_rotation = 7;
             }
@@ -81,6 +81,11 @@ Decision Bot::makeDecision(int lifetime) noexcept {
             break;
         case 7: // multiply
             decision = {2};
+            run = false;
+            ++ m_instructionPointer;
+            break;
+        case 8: // attack
+            decision = {4};
             run = false;
             ++ m_instructionPointer;
             break;
