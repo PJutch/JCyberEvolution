@@ -61,8 +61,9 @@ Field::Field(int width, int height, uint64_t seed) :
     for (int i = 0; i < 256; ++ i) {
         (*species)[i] = 1;
     }
-    (*species)[14] = 3;
-    (*species)[15] = 0;
+    (*species)[14] = 5;
+    (*species)[15] = 3;
+    (*species)[16] = 4;
     at(16, 16).createBot(2, species);
 }
 

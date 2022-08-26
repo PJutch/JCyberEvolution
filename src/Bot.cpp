@@ -67,6 +67,11 @@ Decision Bot::makeDecision() noexcept {
             break;
         case 4: // jump to start
             m_instructionPointer = 0;
+        case 5: // multiply
+            decision = {2};
+            run = false;
+            ++ m_instructionPointer;
+            break;
         default: 
             ++ m_instructionPointer;
             break;
