@@ -35,7 +35,8 @@ using std::fmod;
 
 FieldView::FieldView(FloatRect rect, FloatRect viewport, Field& field) : 
         m_field{field}, m_view{rect}, m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
-        m_fillDensity{0.5f}, m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
+        m_fillDensity{0.5f}, 
+        m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     m_view.setViewport(viewport);
 }
 
@@ -133,6 +134,12 @@ void FieldView::showGui() noexcept {
 
         if (ImGui::Button("Clear")) {
             m_field.clear();
+        }
+    }
+    with_Window("Life cycle") {
+        int lifetime = m_field.getLifetime();
+        if (ImGui::SliderInt("Lifetime", &lifetime, 0, 1024)) {
+            m_field.setLifetime(lifetime);
         }
     }
 }

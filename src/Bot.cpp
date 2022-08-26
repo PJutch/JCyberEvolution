@@ -23,7 +23,7 @@ using sf::RenderStates;
 #include <cassert>
 
 Bot::Bot(Vector2f position, int rotation, std::shared_ptr<Species> species) noexcept : 
-        m_instructionPointer{0}, m_species{species}, m_rotation{rotation},
+        m_instructionPointer{0}, m_species{species}, m_age{0}, m_rotation{rotation},
         m_shape{{0.8f, 0.8f}}, m_directionShape{{0.1f, 0.3f}}, m_shouldDrawDirection{true} {
     Color outlineColor = getOutlineColorFor(species->getColor());
 
@@ -39,7 +39,9 @@ Bot::Bot(Vector2f position, int rotation, std::shared_ptr<Species> species) noex
     m_directionShape.setRotation(rotation * 45.f + 180.f);
 }
 
-Decision Bot::makeDecision() noexcept {
+Decision Bot::makeDecision(int lifetime) noexcept {
+    if (++ m_age > lifetime) return {3};
+
     Decision decision{0}; // skip
 
     bool run = true;

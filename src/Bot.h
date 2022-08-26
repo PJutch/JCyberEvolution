@@ -42,7 +42,7 @@ public:
         m_directionShape.setPosition(position + sf::Vector2f(0.5f, 0.5f));
     }
 
-    Decision makeDecision() noexcept;
+    Decision makeDecision(int lifetime) noexcept;
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override {
         target.draw(m_shape, states);
@@ -59,7 +59,8 @@ public:
 private:
     int m_instructionPointer;
     std::shared_ptr<Species> m_species;
-
+    int m_age;
+    
     int m_rotation;
 
     sf::RectangleShape m_shape;

@@ -46,8 +46,10 @@ using std::numeric_limits;
 using std::abs;
 
 Field::Field(int width, int height, uint64_t seed) : 
-        m_width{width}, m_height{height}, m_cells{width * height}, m_epoch(0), m_shouldDrawBorder{false},
-        m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, m_randomEngine{seed} {
+        m_width{width}, m_height{height}, m_cells{width * height}, 
+        m_lifetime{256}, m_epoch{0}, m_shouldDrawBorder{false},
+        m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
+        m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);
     m_borderShape.setOutlineColor(Color::Black);
     m_borderShape.setOutlineThickness(1.f);
@@ -85,7 +87,7 @@ void Field::update() noexcept {
     decisions.reserve(m_width * m_height);
     for (Cell& cell : m_cells) {
         if (cell.hasBot()) {
-            decisions.push_back(cell.getBot().makeDecision());
+            decisions.push_back(cell.getBot().makeDecision(m_lifetime));
         } else {
             decisions.emplace_back(0);
         }

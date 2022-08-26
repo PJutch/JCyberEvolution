@@ -41,6 +41,14 @@ public:
         return m_randomEngine;
     }
 
+    int getLifetime() const noexcept {
+        return m_lifetime;
+    }
+
+    void setLifetime(int lifetime) noexcept {
+        m_lifetime = lifetime;
+    }
+
     // unsafe, check indices by yourself
     Cell& at(int i, int j) noexcept {
         return m_cells[i * m_width + j];
@@ -100,6 +108,7 @@ private:
 
     std::vector<Cell> m_cells;
     int m_epoch;
+    int m_lifetime;
 
     bool m_shouldDrawBorder;
     sf::RectangleShape m_borderShape;
