@@ -92,6 +92,7 @@ int main(int argc, char** argv) {
                     switch (event.key.code) {
                         case Keyboard::Escape: window.close(); break;
                     }
+                    fieldView.handleKeyPressedEvent(event.key);
                     break;
                 case Event::MouseWheelScrolled:
                     if (io.WantCaptureMouse) break;
@@ -103,7 +104,7 @@ int main(int argc, char** argv) {
             }
         }
 
-        field.update();
+        for (int i = 0; i < fieldView.getSimulationSpeed(); ++ i) field.update();
 
         ImGui::SFML::Update(window, elapsedTime);
         fieldView.update(!io.WantCaptureKeyboard, elapsedTime);

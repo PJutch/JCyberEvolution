@@ -31,11 +31,23 @@ public:
 
     bool handleResizeEvent(const sf::Event::SizeEvent& event) noexcept;
 
+    bool handleKeyPressedEvent(const sf::Event::KeyEvent& event) noexcept {
+        if (event.code == sf::Keyboard::Space) {
+            m_paused = !m_paused;
+            return true;
+        }
+        return false;
+    }
+
     void update(bool keyboardAvailable, sf::Time elapsedTime) noexcept;
 
     void showGui() noexcept;
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
+
+    int getSimulationSpeed() const noexcept {
+        return m_paused ? 0 : m_simulationSpeed;
+    }
 
     void setShouldRepeat(bool shouldRepeat) noexcept {
         m_shouldRepeat = shouldRepeat;
@@ -51,6 +63,8 @@ private:
     bool m_shouldDrawBots;
 
     float m_fillDensity;
+    int m_simulationSpeed;
+    bool m_paused;
 
     float m_baseZoomingChange;
     float m_baseMovingSpeed;

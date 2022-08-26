@@ -35,7 +35,7 @@ using std::fmod;
 
 FieldView::FieldView(FloatRect rect, Vector2f screenSize, Field& field) : 
         m_field{field}, m_view{rect}, m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
-        m_fillDensity{0.5f}, 
+        m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false},
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     resize(screenSize.x, screenSize.y);
 }
@@ -135,9 +135,10 @@ void FieldView::showGui() noexcept {
         if (ImGui::Checkbox("Repeat", &m_shouldRepeat)) {
             setShouldRepeat(m_shouldRepeat);
         }
-         if (ImGui::Button("To center")) {
+        if (ImGui::Button("To center")) {
             m_view.setCenter(m_field.getPosition() + m_field.getSize() / 2.f);
         }
+        ImGui::SliderInt("Simulation speed", &m_simulationSpeed, 0, 64);
     }
     with_Window("Field") {
         ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
