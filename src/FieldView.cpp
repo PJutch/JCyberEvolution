@@ -12,6 +12,7 @@ You should have received a copy of the GNU General Public License along with JCy
 If not, see <https://www.gnu.org/licenses/>. */
 
 #include "FieldView.h"
+#include "utility.h"
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -179,14 +180,11 @@ void FieldView::showGui() noexcept {
 
     with_Window("Statistics") {
         ImGui::Text("Epoch: %i", m_field.getEpoch());
-        ImGui::Text("Population: %i", m_populationHistory.back());
 
-        array<float, POPULATION_HISTORY_SIZE> populationHistory;
-        for (int i = 0; i < POPULATION_HISTORY_SIZE; ++ i) {
-            populationHistory[i] = static_cast<float>(m_populationHistory[i]);
-        }
-        ImGui::PlotLines("", populationHistory.data(), POPULATION_HISTORY_SIZE, 
-                         0, NULL, 0.f, m_field.getWidth() * m_field.getHeight(), ImVec2(0, 80.0f));
+        ImGui::Text("Population: %i", m_populationHistory.back());
+        ImGui::PlotLines("##Population", containerGetter<std::deque<int>>, &m_populationHistory, 
+                         POPULATION_HISTORY_SIZE, 0, NULL, 
+                         0.f, m_field.getWidth() * m_field.getHeight(), ImVec2(0, 80.0f));
     }
 
     with_Window("Life cycle") {

@@ -31,4 +31,9 @@ inline int getOppositeRotation(int rotation) noexcept {
     return (rotation + 4) % 8;
 }
 
+template<typename T>
+float containerGetter(void* data, int index) noexcept {
+    return static_cast<float>((*static_cast<T*>(data))[index]);
+}
+
 #endif
