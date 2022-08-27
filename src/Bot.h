@@ -56,6 +56,9 @@ public:
     void setShouldDrawDirection(bool shouldDrawOutline) noexcept {
         m_shouldDrawDirection = shouldDrawOutline;
     }
+
+    friend std::ostream& operator<< (std::ostream& os, const Bot& bot) noexcept;
+    friend std::istream& operator>> (std::istream& is, Bot& bot) noexcept;
 private:
     int m_instructionPointer;
     std::shared_ptr<Species> m_species;

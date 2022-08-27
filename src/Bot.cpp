@@ -102,3 +102,16 @@ Decision Bot::makeDecision(int lifetime) noexcept {
 
     return decision;
 }
+
+std::ostream& operator<< (std::ostream& os, const Bot& bot) noexcept {
+    os << 1 << ' '  << bot.m_instructionPointer << ' ' << bot.m_age << ' ' << *bot.m_species;
+    return os;
+}
+
+std::istream& operator>> (std::istream& is, Bot& bot) noexcept {
+    int version;
+    is >> version;
+    
+    is >> bot.m_instructionPointer >> bot.m_age >> *bot.m_species;
+    return is;
+}

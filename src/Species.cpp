@@ -15,7 +15,6 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 #include <SFML/Graphics.hpp>
 using sf::Color;
-
 using sf::Uint8;
 using sf::Uint32;
 
@@ -28,6 +27,10 @@ using std::mt19937_64;
 using std::shared_ptr;
 using std::make_shared;
 using std::enable_shared_from_this;
+
+#include <iostream>
+using std::ostream;
+using std::istream;
 
 #include <limits>
 using std::numeric_limits;
@@ -93,3 +96,26 @@ shared_ptr<Species> Species::createMutant(mt19937_64& randomEngine, int epoch) n
     if (!result) return shared_from_this();
     return result;
 }
+
+ostream& operator<< (ostream& os, const Species& species) noexcept {
+    os << 1 << ' ' << species.m_color.toInteger();
+    for (uint16_t value : species.m_genome) {
+        os << ' ' << value;
+    }
+    return os;
+}
+
+istream& operator>> (istream& is, Species& species) noexcept {
+    int version;
+    is >> version;
+
+    Uint32 color;
+    is >> color;
+    species.m_color = Color{color};
+
+    for (uint16_t& value : species.m_genome) {
+        is >> value;
+    }
+    return is;
+}
+

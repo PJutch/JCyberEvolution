@@ -19,10 +19,11 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <random>
 #include <array>
 #include <memory>
+#include <iostream>
 
 class Species : public std::enable_shared_from_this<Species> {
 public:
-    Species(sf::Color color) noexcept;
+    explicit Species(sf::Color color) noexcept;
 
     static std::shared_ptr<Species> createRandom(std::mt19937_64& randomEngine) noexcept;
 
@@ -42,6 +43,9 @@ public:
     sf::Color getColor() const noexcept {
         return m_color;
     }
+
+    friend std::ostream& operator<< (std::ostream& os, const Species& species) noexcept;
+    friend std::istream& operator>> (std::istream& is, Species& species) noexcept;
 private:
     sf::Color m_color;
     std::array<uint16_t, 256> m_genome;
