@@ -7,9 +7,6 @@ Currently work in progress.
 ## License
 JCyberEvolution is licensed under GNU General Public License 3
 
-## Features
-Will be soon
-
 ## Dependencies
 All dependencies are provided with this project in extlibs (as source or binaries)
 There are:
