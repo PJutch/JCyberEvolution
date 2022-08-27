@@ -17,6 +17,8 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <imgui.h>
 #include <imgui-SFML.h>
 #include <imgui_sugar.hpp>
+#include <dirent.h>
+#include <ImGuiFileDialog.h>
 
 #include <SFML/Graphics.hpp>
 using sf::FloatRect;
@@ -34,13 +36,15 @@ using sf::Time;
 
 #include <algorithm>
 using std::clamp;
+using std::ranges::copy;
+using std::ranges::fill;
+
+#include <fstream>
+using std::ifstream;
+using std::ofstream;
 
 #include <array>
 using std::array;
-
-#include <algorithm>
-using std::ranges::copy;
-using std::ranges::fill;
 
 #include <cmath>
 using std::pow;
@@ -99,7 +103,7 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
                 selectBot({-1, -1});
             } else selectBot(Vector2i(pos.x, pos.y));
             break;
-        case Tool::DELETE:
+        case Tool::DELETE_BOT:
             m_field.at(pos.y, pos.x).deleteBot();
             break;
     }
@@ -218,8 +222,27 @@ void FieldView::showGui() noexcept {
         int tool = static_cast<int>(m_tool);
         ImGui::Combo("##Mouse", &tool, "Select bot\0Delete\0\0");
         m_tool = static_cast<Tool>(tool);
-        
         if (m_tool != Tool::SELECT_BOT) m_selectedBot = {-1, -1};
+
+        ImGui::BeginDisabled(m_selectedBot == Vector2i(-1, -1));
+        if (ImGui::Button("Save selected bot")) {
+            ImGuiFileDialog::Instance()->OpenDialog("Save bot", "Choose File", 
+                ".bot", ".", "", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
+        }
+        ImGui::EndDisabled();
+
+        if (ImGuiFileDialog::Instance()->Display("Save bot")) {
+            if (ImGuiFileDialog::Instance()->IsOk()) {
+                if (m_selectedBot != Vector2i(-1, -1)) {
+                    ofstream file{ImGuiFileDialog::Instance()->GetFilePathName()};
+
+                    Cell& cell = m_field.at(m_selectedBot.y, m_selectedBot.x);
+                    file << cell.getBot() << std::endl;
+                }
+            }
+
+            ImGuiFileDialog::Instance()->Close();
+        }  
     }
 
     with_Window("Statistics") {

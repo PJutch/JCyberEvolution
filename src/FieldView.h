@@ -29,7 +29,7 @@ class FieldView : public sf::Drawable {
 public:
     enum class Tool : int {
         SELECT_BOT = 0,
-        DELETE = 1,
+        DELETE_BOT = 1,
     };
 
     FieldView(sf::Vector2f screenSize, Field& field);

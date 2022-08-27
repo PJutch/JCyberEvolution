@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 include_directories(src)
 include_directories(extlibs/imgui)
 include_directories(extlibs/ImGuiFileDialog)
+include_directories(extlibs/ImGuiFileDialog/dirent)
 include_directories(extlibs/SFML/include)
 
 add_executable(JCyberEvolution src/main.cpp src/Field.cpp src/Cell.cpp src/FieldView.cpp 
