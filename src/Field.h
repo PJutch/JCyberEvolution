@@ -37,6 +37,10 @@ public:
         return sf::Vector2f(m_width, m_height);
     }
 
+    sf::FloatRect getRect() const noexcept {
+        return sf::FloatRect(getPosition().x, getPosition().y, m_width, m_height);
+    }
+
     std::mt19937_64& getRandomEngine() noexcept {
         return m_randomEngine;
     }
@@ -55,11 +59,13 @@ public:
         m_lifetime = lifetime;
     }
 
+    // i is y and j is x
     // unsafe, check indices by yourself
     Cell& at(int i, int j) noexcept {
         return m_cells[i * m_width + j];
     }
 
+    // i is y and j is x
     // unsafe, check indices by yourself
     const Cell& at(int i, int j) const noexcept {
         return m_cells[i * m_width + j];

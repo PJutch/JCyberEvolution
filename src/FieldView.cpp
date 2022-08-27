@@ -44,13 +44,14 @@ using std::ranges::fill;
 #include <cmath>
 using std::pow;
 using std::fmod;
+using std::fmodf;
 
 const int POPULATION_HISTORY_SIZE = 128;
 
 FieldView::FieldView(Vector2f screenSize, Field& field) : 
         m_field{field}, m_view{FloatRect(0.f, 0.f, field.getWidth(), field.getHeight())}, 
         m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
-        m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false}, 
+        m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false}, m_tool{Tool::DELETE},
         m_populationHistory(128, field.computePopulation()),
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     resize(screenSize.x, screenSize.y);
@@ -71,8 +72,20 @@ bool FieldView::handleMouseWheelScrollEvent(const Event::MouseWheelScrollEvent& 
     return true;
 }
 
-bool FieldView::handleResizeEvent(const Event::SizeEvent& event) noexcept {
-    resize(event.width, event.height);
+bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& event, 
+                                              const RenderTarget& target) noexcept {
+    Vector2f pos = target.mapPixelToCoords({event.x, event.y}, m_view);
+    if (m_shouldRepeat) {
+        pos = {fmodf(pos.x, m_field.getWidth()), fmodf(pos.y, m_field.getHeight())};
+    } else if (!m_field.getRect().contains(pos)) {
+        return false;
+    }
+
+    switch (m_tool) {
+        case Tool::DELETE:
+            m_field.at(pos.y, pos.x).deleteBot();
+    }
+
     return true;
 }
 
@@ -165,7 +178,7 @@ void FieldView::showGui() noexcept {
         ImGui::SliderInt("Simulation speed", &m_simulationSpeed, 0, 64);
     }
 
-    with_Window("Field") {
+    with_Window("Tools") {
         ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
         if (ImGui::Button("Random fill")) {
             m_field.randomFill(m_fillDensity);
@@ -176,6 +189,11 @@ void FieldView::showGui() noexcept {
             m_field.clear();
             fill(m_populationHistory, 0);
         }
+
+        ImGui::Text("Mouse click tool");
+        int tool = static_cast<int>(m_tool);
+        ImGui::Combo("##Mouse click tool", &tool, "Delete\0\0");
+        m_tool = static_cast<Tool>(tool);
     }
 
     with_Window("Statistics") {

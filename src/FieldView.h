@@ -27,11 +27,19 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 class FieldView : public sf::Drawable {
 public:
+    enum class Tool : int {
+        DELETE = 0,
+    };
+
     FieldView(sf::Vector2f screenSize, Field& field);
 
+    // return true if handled
     bool handleMouseWheelScrollEvent(const sf::Event::MouseWheelScrollEvent& event) noexcept;
 
-    bool handleResizeEvent(const sf::Event::SizeEvent& event) noexcept;
+    bool handleResizeEvent(const sf::Event::SizeEvent& event) noexcept {
+        resize(event.width, event.height);
+        return true;
+    }
 
     bool handleKeyPressedEvent(const sf::Event::KeyEvent& event) noexcept {
         if (event.code == sf::Keyboard::Space) {
@@ -40,6 +48,9 @@ public:
         }
         return false;
     }
+
+    bool handleMouseButtonPressedEvent(const sf::Event::MouseButtonEvent& event, 
+                                       const sf::RenderTarget& target) noexcept;
 
     void updateField() noexcept;
 
@@ -69,6 +80,8 @@ private:
     float m_fillDensity;
     int m_simulationSpeed;
     bool m_paused;
+
+    Tool m_tool;
 
     std::deque<int> m_populationHistory;
 

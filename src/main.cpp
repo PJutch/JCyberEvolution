@@ -91,6 +91,10 @@ int main(int argc, char** argv) {
                     }
                     fieldView.handleKeyPressedEvent(event.key);
                     break;
+                case Event::MouseButtonPressed:
+                    if (io.WantCaptureMouse) break;
+                    fieldView.handleMouseButtonPressedEvent(event.mouseButton, window);
+                    break;
                 case Event::MouseWheelScrolled:
                     if (io.WantCaptureMouse) break;
                     fieldView.handleMouseWheelScrollEvent(event.mouseWheelScroll);
