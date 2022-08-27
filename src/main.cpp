@@ -115,6 +115,7 @@ int main(int argc, char** argv) {
         window.draw(fieldView);
 
         fieldView.showGui();
+        ImGui::ShowDemoWindow();
         ImGui::SFML::Render(window);
 
         window.display();

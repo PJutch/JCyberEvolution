@@ -14,6 +14,7 @@ There are:
 - [Dear Imgui](https://github.com/ocornut/imgui)
 - [Dear Imgui SFML backend](https://github.com/eliasdaler/imgui-sfml)
 - [Dear ImGui syntactic sugar](https://github.com/mnesarco/imgui_sugar)
+- [Dear ImGui file dialog](https://github.com/aiekick/ImGuiFileDialog)
 
 ## Build
 You can build this project with CMake under Windows with MSVC.
