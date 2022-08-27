@@ -20,10 +20,11 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 #include <SFML/Graphics.hpp>
 using sf::FloatRect;
+using sf::Vector2f;
+using sf::Vector2i;
 using sf::Color;
 using sf::RenderTarget;
 using sf::RenderStates;
-using sf::Vector2f;
 using sf::Transform;
 
 #include <SFML/System.hpp>
@@ -51,9 +52,17 @@ const int POPULATION_HISTORY_SIZE = 128;
 FieldView::FieldView(Vector2f screenSize, Field& field) : 
         m_field{field}, m_view{FloatRect(0.f, 0.f, field.getWidth(), field.getHeight())}, 
         m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
-        m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false}, m_tool{Tool::DELETE},
+        m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false}, 
+        m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
         m_populationHistory(128, field.computePopulation()),
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
+    m_selectionShape.setFillColor(Color::Transparent);
+    m_selectionShape.setOutlineColor(Color::Red);
+    m_selectionShape.setOutlineThickness(0.25);
+    m_selectionShape.setOrigin(0.25, 0.25);
+
+    m_field.setView(this);
+    
     resize(screenSize.x, screenSize.y);
 }
 
@@ -74,6 +83,9 @@ bool FieldView::handleMouseWheelScrollEvent(const Event::MouseWheelScrollEvent& 
 
 bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& event, 
                                               const RenderTarget& target) noexcept {
+    if (!m_view.getViewport().contains(static_cast<float>(event.x) / target.getSize().x, 
+        static_cast<float>(event.y) / target.getSize().y)) return false;
+
     Vector2f pos = target.mapPixelToCoords({event.x, event.y}, m_view);
     if (m_shouldRepeat) {
         pos = {fmodf(pos.x, m_field.getWidth()), fmodf(pos.y, m_field.getHeight())};
@@ -82,8 +94,14 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
     }
 
     switch (m_tool) {
+        case Tool::SELECT_BOT:
+            if (!m_field.at(pos.y, pos.x).hasBot()) {
+                selectBot({-1, -1});
+            } else selectBot(Vector2i(pos.x, pos.y));
+            break;
         case Tool::DELETE:
             m_field.at(pos.y, pos.x).deleteBot();
+            break;
     }
 
     return true;
@@ -155,10 +173,16 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
                 currentStates.transform.translate(-m_field.getPosition());
 
                 target.draw(m_field, currentStates);
+
+                currentStates.transform *= m_field.getTransform();
+                if (m_selectedBot != Vector2i(-1, -1)) target.draw(m_selectionShape, currentStates);
             }
         }
     } else {
         target.draw(m_field, states);
+
+        states.transform *= m_field.getTransform();
+        if (m_selectedBot != Vector2i(-1, -1)) target.draw(m_selectionShape, states);
     }
 
     target.setView(prevView);
@@ -190,10 +214,12 @@ void FieldView::showGui() noexcept {
             fill(m_populationHistory, 0);
         }
 
-        ImGui::Text("Mouse click tool");
+        ImGui::Text("Mouse");
         int tool = static_cast<int>(m_tool);
-        ImGui::Combo("##Mouse click tool", &tool, "Delete\0\0");
+        ImGui::Combo("##Mouse", &tool, "Select bot\0Delete\0\0");
         m_tool = static_cast<Tool>(tool);
+        
+        if (m_tool != Tool::SELECT_BOT) m_selectedBot = {-1, -1};
     }
 
     with_Window("Statistics") {

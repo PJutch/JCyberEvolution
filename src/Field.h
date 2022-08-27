@@ -21,6 +21,8 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <vector>
 #include <random>
 
+class FieldView;
+
 class Field : public sf::Transformable, public sf::Drawable {
 public:
     Field(int width, int height, uint64_t seed);
@@ -114,6 +116,10 @@ public:
     void setShouldDrawBorder(bool shouldDrawBorder) noexcept {
         m_shouldDrawBorder = shouldDrawBorder;
     }
+
+    void setView(FieldView* view) noexcept {
+        m_view = view;
+    }
 private:
     int m_width;
     int m_height;
@@ -122,6 +128,8 @@ private:
     int m_epoch;
 
     int m_lifetime;
+
+    FieldView* m_view;
 
     bool m_shouldDrawBorder;
     sf::RectangleShape m_borderShape;

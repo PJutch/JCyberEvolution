@@ -53,15 +53,21 @@ public:
         m_bot = std::make_unique<Bot>(m_shape.getPosition(), std::forward<Args>(args)...);
     }
 
+    bool shouldDie() {
+        return m_shouldDie;
+    }
+
     void setShouldDie(bool shouldDie) noexcept {
         m_shouldDie = shouldDie;
     }
 
-    void checkShouldDie() noexcept {
+    bool checkShouldDie() noexcept {
         if (m_shouldDie) {
             deleteBot();
             m_shouldDie = false;
+            return true;
         }
+        return false;
     }
 
     bool isAlive() const noexcept {

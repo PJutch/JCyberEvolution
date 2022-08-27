@@ -12,6 +12,7 @@ You should have received a copy of the GNU General Public License along with JCy
 If not, see <https://www.gnu.org/licenses/>. */
 
 #include "Field.h"
+#include "FieldView.h"
 #include "Cell.h"
 #include "Bot.h"
 #include "Species.h"
@@ -47,7 +48,7 @@ using std::abs;
 
 Field::Field(int width, int height, uint64_t seed) : 
         m_width{width}, m_height{height}, m_cells{width * height}, 
-        m_epoch{0}, m_lifetime{256}, m_shouldDrawBorder{false},
+        m_epoch{0}, m_lifetime{256}, m_view{nullptr}, m_shouldDrawBorder{false},
         m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);
@@ -90,7 +91,7 @@ void Field::update() noexcept {
         }
     }
 
-    for (int i = 0; i < m_height; ++ i) {
+    for (int i = 0; i < m_height; ++ i)
         for (int j = 0; j < m_width; ++ j) {
             int startRotation = uniform_int_distribution(0, 7)(m_randomEngine);
             for (int rotation = startRotation; rotation < startRotation + 8; ++ rotation) {
@@ -110,6 +111,7 @@ void Field::update() noexcept {
                 case 1:
                     if (!at(i, j).hasBot()) {
                         at(i, j).setBot(make_unique<Bot>(bot));
+                        if (m_view) m_view->handleBotMoved({jCurrent, iCurrent}, {j, i});
                         cell.setShouldDie(true);
                     }
                     break;
@@ -133,11 +135,13 @@ void Field::update() noexcept {
             if (decisions[i * m_width + j].instruction == 3 && at(i, j).isAlive()) {
                 at(i, j).setShouldDie(true);
             }
-        }
     }
 
-    for (Cell& cell : m_cells) {
-        cell.checkShouldDie();
+    for (int i = 0; i < m_height; ++ i)
+        for (int j = 0; j < m_width; ++ j) {
+            if (at(i, j).checkShouldDie()) {
+                if (m_view) m_view->handleBotDied({j, i});
+            }
     }
 
     ++ m_epoch;

@@ -28,7 +28,8 @@ If not, see <https://www.gnu.org/licenses/>. */
 class FieldView : public sf::Drawable {
 public:
     enum class Tool : int {
-        DELETE = 0,
+        SELECT_BOT = 0,
+        DELETE = 1,
     };
 
     FieldView(sf::Vector2f screenSize, Field& field);
@@ -68,6 +69,30 @@ public:
         m_shouldRepeat = shouldRepeat;
         m_field.setShouldDrawBorder(!m_shouldRepeat);
     }
+
+    void selectBot(sf::Vector2i coords) noexcept {
+        m_selectedBot = coords;
+        if (coords != sf::Vector2i{-1, -1}) {
+            m_selectionShape.setSize({1.5f, 1.5f});
+            m_selectionShape.setPosition(coords.x, coords.y);
+        }
+    }
+
+    bool handleBotMoved(sf::Vector2i from, sf::Vector2i to) noexcept {
+        if (from == m_selectedBot) {
+            selectBot(to);
+            return true;
+        }
+        return false;
+    }
+
+    bool handleBotDied(sf::Vector2i coords) noexcept {
+        if (coords == m_selectedBot) {
+            selectBot({-1, -1});
+            return true;
+        }
+        return false;
+    }
 private:
     Field& m_field;
     sf::View m_view;
@@ -82,6 +107,8 @@ private:
     bool m_paused;
 
     Tool m_tool;
+    sf::Vector2i m_selectedBot;
+    sf::RectangleShape m_selectionShape;
 
     std::deque<int> m_populationHistory;
 
