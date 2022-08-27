@@ -27,7 +27,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 class FieldView : public sf::Drawable {
 public:
-    FieldView(sf::FloatRect rect, sf::Vector2f screenSize, Field& field);
+    FieldView(sf::Vector2f screenSize, Field& field);
 
     bool handleMouseWheelScrollEvent(const sf::Event::MouseWheelScrollEvent& event) noexcept;
 

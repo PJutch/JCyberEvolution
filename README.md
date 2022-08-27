@@ -18,5 +18,10 @@ There are:
 - [Dear ImGui syntactic sugar](https://github.com/mnesarco/imgui_sugar)
 
 ## Build
-You can build this project with CMake.
+You can build this project with CMake under Windows with MSVC.
+
+Under Linux or with MinGW, you need to download or build SFML and link against it.
+(It should work, but hasn't been tested)
+May be will be fixed in the future.
+
 After build, copy the contents of extlibs/SFML/bin to the folder with executable.

@@ -46,8 +46,9 @@ using std::fmod;
 
 const int POPULATION_HISTORY_SIZE = 128;
 
-FieldView::FieldView(FloatRect rect, Vector2f screenSize, Field& field) : 
-        m_field{field}, m_view{rect}, m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
+FieldView::FieldView(Vector2f screenSize, Field& field) : 
+        m_field{field}, m_view{FloatRect(0.f, 0.f, field.getWidth(), field.getHeight())}, 
+        m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
         m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false}, 
         m_populationHistory(128, field.computePopulation()),
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {

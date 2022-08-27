@@ -68,14 +68,14 @@ shared_ptr<Species> Species::createMutant(mt19937_64& randomEngine, int epoch) n
             result->m_genome[i] = genomeDistribution(randomEngine);
 
             if (canonicalDistribution(randomEngine) 
-                < sin(static_cast<double>(epoch)) / 2.0 + 0.5) {
+                < sin(static_cast<double>(epoch / 100.f)) / 2.0 + 0.5) {
                 if (result->m_color.r != numeric_limits<Uint8>::max()) result->m_color.r += 1;
             } else {
                 if (result->m_color.r != 0) result->m_color.r -= 1;
             }
 
             if (canonicalDistribution(randomEngine) 
-                < static_cast<double>(result->m_genome[i]) / 8.0) {
+                < static_cast<double>(result->m_genome[i] % 16) / 16.0) {
                 if (result->m_color.g != numeric_limits<Uint8>::max()) result->m_color.g += 1;
             } else {
                 if (result->m_color.g != 0) result->m_color.g -= 1;
