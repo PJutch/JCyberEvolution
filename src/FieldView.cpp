@@ -94,12 +94,24 @@ bool FieldView::handleMouseWheelScrollEvent(const Event::MouseWheelScrollEvent& 
 bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& event, 
                                               const RenderTarget& target) noexcept {
     if (!m_view.getViewport().contains(static_cast<float>(event.x) / target.getSize().x, 
-        static_cast<float>(event.y) / target.getSize().y)) return false;
+            static_cast<float>(event.y) / target.getSize().y)) {
+        if (m_tool == Tool::SELECT_BOT) {
+            selectBot({-1, -1});
+            return true;
+        }
+        return false;
+    }
 
     Vector2f pos = target.mapPixelToCoords({event.x, event.y}, m_view);
     if (m_shouldRepeat) {
         pos = {fmodf(pos.x, m_field.getWidth()), fmodf(pos.y, m_field.getHeight())};
+        if (pos.x < 0) pos.x += m_field.getWidth();
+        if (pos.y < 0) pos.y += m_field.getHeight();
     } else if (!m_field.getRect().contains(pos)) {
+        if (m_tool == Tool::SELECT_BOT) {
+            selectBot({-1, -1});
+            return true;
+        }
         return false;
     }
 
