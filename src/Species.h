@@ -23,6 +23,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 class Species : public std::enable_shared_from_this<Species> {
 public:
+    Species() noexcept;
     explicit Species(sf::Color color) noexcept;
 
     static std::shared_ptr<Species> createRandom(std::mt19937_64& randomEngine) noexcept;

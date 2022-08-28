@@ -40,6 +40,8 @@ using std::sin;
 
 using std::ssize;
 
+Species::Species() noexcept : Species{Color::Black} {}
+
 Species::Species(sf::Color color) noexcept : enable_shared_from_this<Species>{}, 
     m_color{color}, m_genome{} {}
 
@@ -118,4 +120,3 @@ istream& operator>> (istream& is, Species& species) noexcept {
     }
     return is;
 }
-

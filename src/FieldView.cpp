@@ -46,6 +46,11 @@ using std::ofstream;
 #include <array>
 using std::array;
 
+using std::ssize;
+
+#include <memory>
+using std::make_unique;
+
 #include <cmath>
 using std::pow;
 using std::fmod;
@@ -58,6 +63,7 @@ FieldView::FieldView(Vector2f screenSize, Field& field) :
         m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
         m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false}, 
         m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
+        m_recentFiles{}, m_selectedFile{-1}, m_loadedBot{nullptr}, 
         m_populationHistory(128, field.computePopulation()),
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     m_selectionShape.setFillColor(Color::Transparent);
@@ -102,13 +108,29 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
             if (!m_field.at(pos.y, pos.x).hasBot()) {
                 selectBot({-1, -1});
             } else selectBot(Vector2i(pos.x, pos.y));
-            break;
+            return true;
         case Tool::DELETE_BOT:
             m_field.at(pos.y, pos.x).deleteBot();
-            break;
+            return true;
+        case Tool::PLACE_BOT:
+            if (!m_loadedBot) {
+                if (m_selectedFile == -1) {
+                    m_field.at(pos.y, pos.x).setBot(
+                        make_unique<Bot>(Bot::createRandom(m_field.getRandomEngine())));
+                    return true;
+                }
+
+                ifstream file{ImGuiFileDialog::Instance()->GetFilePathName()};
+
+                m_loadedBot = make_unique<Bot>();
+                file >> *m_loadedBot;
+            }
+
+            m_field.at(pos.y, pos.x).setBot(make_unique<Bot>(*m_loadedBot));
+            return true;
     }
 
-    return true;
+    return false;
 }
 
 void FieldView::resize(float width, float height) noexcept {
@@ -209,20 +231,66 @@ void FieldView::showGui() noexcept {
     with_Window("Tools") {
         ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
         if (ImGui::Button("Random fill")) {
+            m_selectedBot = {-1, -1};
             m_field.randomFill(m_fillDensity);
             fill(m_populationHistory, m_field.computePopulation());
         }
 
         if (ImGui::Button("Clear")) {
+            m_selectedBot = {-1, -1};
             m_field.clear();
             fill(m_populationHistory, 0);
         }
 
         ImGui::Text("Mouse");
         int tool = static_cast<int>(m_tool);
-        ImGui::Combo("##Mouse", &tool, "Select bot\0Delete\0\0");
+        ImGui::Combo("##Mouse", &tool, "Select bot\0Delete bot\0Place bot\0");
         m_tool = static_cast<Tool>(tool);
         if (m_tool != Tool::SELECT_BOT) m_selectedBot = {-1, -1};
+
+        ImGui::BeginDisabled(m_tool != Tool::PLACE_BOT);
+        ImGui::Text("Current file");
+        with_ListBox ("##Current file", ImVec2(-FLT_MIN, 5.25f * ImGui::GetTextLineHeightWithSpacing())) {
+            const bool is_selected = (m_selectedFile == -1);
+            if (ImGui::Selectable("Random", is_selected)) {
+                m_selectedFile = -1;
+                m_loadedBot.reset();
+            }
+                
+            if (is_selected)
+                ImGui::SetItemDefaultFocus();
+
+            for (int i = 0; i < ssize(m_recentFiles); i++) {
+                with_ID (i) {
+                    const bool is_selected = (m_selectedFile == i);
+                    if (ImGui::Selectable(m_recentFiles[i].first.c_str(), is_selected)) {
+                        m_selectedFile = i;
+                        m_loadedBot.reset();
+                    }
+
+                    if (is_selected)
+                        ImGui::SetItemDefaultFocus();
+                }
+            }
+        }
+        if (ImGui::Button("Other...")) {
+            ImGuiFileDialog::Instance()->OpenDialog("Open bot", "Choose File", 
+                ".bot", ".", "", 1, nullptr, ImGuiFileDialogFlags_None);
+        }
+        ImGui::EndDisabled();
+
+        if (ImGuiFileDialog::Instance()->Display("Open bot")) {
+            if (ImGuiFileDialog::Instance()->IsOk()) {
+                for (auto [name, path] : ImGuiFileDialog::Instance()->GetSelection()) {
+                    if (ssize(m_recentFiles) >= 4) m_recentFiles.pop_back();
+                    m_recentFiles.emplace_front(name, path);
+                    m_selectedFile = 0;
+                    m_loadedBot.reset();
+                }
+            }
+
+            ImGuiFileDialog::Instance()->Close();
+        }  
 
         ImGui::BeginDisabled(m_selectedBot == Vector2i(-1, -1));
         if (ImGui::Button("Save selected bot")) {

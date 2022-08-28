@@ -16,6 +16,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 #include "Species.h"
 #include "Decision.h"
+#include "utility.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -23,7 +24,13 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 class Bot : public sf::Drawable {
 public:
+    Bot() noexcept;
     Bot(sf::Vector2f position, int rotation, std::shared_ptr<Species> species) noexcept;
+
+    static Bot createRandom(std::mt19937_64& randomEngine) noexcept {
+        int rotation = std::uniform_int_distribution(0, 7)(randomEngine);
+        return Bot{{0.f, 0.f}, rotation, Species::createRandom(randomEngine)};
+    }
 
     sf::Vector2f getSize() const noexcept {
         return m_shape.getSize();
@@ -57,8 +64,20 @@ public:
         m_shouldDrawDirection = shouldDrawOutline;
     }
 
-    friend std::ostream& operator<< (std::ostream& os, const Bot& bot) noexcept;
-    friend std::istream& operator>> (std::istream& is, Bot& bot) noexcept;
+    inline friend std::ostream& operator<< (std::ostream& os, const Bot& bot) noexcept {
+        os << 1 << ' '  << bot.m_instructionPointer << ' ' << bot.m_age << ' ' << *bot.m_species;
+        return os;
+    }
+
+    inline friend std::istream& operator>> (std::istream& is, Bot& bot) noexcept {
+        int version;
+        is >> version; // check in the future
+    
+        auto species = std::make_shared<Species>();
+        is >> bot.m_instructionPointer >> bot.m_age >> *species;
+        bot.setSpecies(species);
+        return is;
+    }
 private:
     int m_instructionPointer;
     std::shared_ptr<Species> m_species;
@@ -70,6 +89,16 @@ private:
     sf::RectangleShape m_directionShape;
 
     bool m_shouldDrawDirection;
+
+    void setSpecies(std::shared_ptr<Species> species) noexcept {
+        m_species = species;
+        if (!m_species) return;
+
+        sf::Color outlineColor = getOutlineColorFor(m_species->getColor());
+        m_shape.setOutlineColor(outlineColor);
+        m_shape.setFillColor(species->getColor());
+        m_directionShape.setFillColor(outlineColor);
+    }
 };
 
 #endif

@@ -171,8 +171,7 @@ void Field::randomFill(float density) noexcept {
 
     for (Cell& cell : m_cells) {
         if (uniform_real_distribution<float>(0.f, 1.f)(m_randomEngine) < density) {
-            int rotation = uniform_int_distribution(0, 7)(m_randomEngine);
-            cell.createBot(rotation, Species::createRandom(m_randomEngine));
+            cell.setBot(make_unique<Bot>(Bot::createRandom(m_randomEngine)));
         }
     }
 }

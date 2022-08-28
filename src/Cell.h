@@ -45,7 +45,7 @@ public:
     }
 
     void deleteBot() noexcept {
-        m_bot.reset(nullptr);
+        m_bot.reset();
     }  
 
     template<typename... Args>

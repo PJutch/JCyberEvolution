@@ -24,12 +24,15 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <SFML/System.hpp>
 
 #include <deque>
+#include <string>
+#include <utility>
 
 class FieldView : public sf::Drawable {
 public:
     enum class Tool : int {
         SELECT_BOT = 0,
-        DELETE_BOT = 1,
+        DELETE_BOT,
+        PLACE_BOT,
     };
 
     FieldView(sf::Vector2f screenSize, Field& field);
@@ -70,14 +73,6 @@ public:
         m_field.setShouldDrawBorder(!m_shouldRepeat);
     }
 
-    void selectBot(sf::Vector2i coords) noexcept {
-        m_selectedBot = coords;
-        if (coords != sf::Vector2i{-1, -1}) {
-            m_selectionShape.setSize({1.5f, 1.5f});
-            m_selectionShape.setPosition(coords.x, coords.y);
-        }
-    }
-
     bool handleBotMoved(sf::Vector2i from, sf::Vector2i to) noexcept {
         if (from == m_selectedBot) {
             selectBot(to);
@@ -110,6 +105,10 @@ private:
     sf::Vector2i m_selectedBot;
     sf::RectangleShape m_selectionShape;
 
+    std::deque<std::pair<std::string, std::string>> m_recentFiles;
+    int m_selectedFile;
+    std::unique_ptr<Bot> m_loadedBot;
+
     std::deque<int> m_populationHistory;
 
     float m_baseZoomingChange;
@@ -117,6 +116,19 @@ private:
     float m_speedModificator;
 
     void resize(float width, float height) noexcept;
+
+    void selectBot(sf::Vector2i coords) noexcept {
+        m_selectedBot = coords;
+        if (coords != sf::Vector2i{-1, -1}) {
+            m_selectionShape.setSize({1.5f, 1.5f});
+            m_selectionShape.setPosition(coords.x, coords.y);
+        }
+    }
+
+    void selectFile(int index) noexcept {
+        m_selectedFile = index;
+        m_loadedBot.reset();
+    }
 };
 
 #endif

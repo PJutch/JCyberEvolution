@@ -20,22 +20,25 @@ using sf::Color;
 using sf::RenderTarget;
 using sf::RenderStates;
 
+#include <memory>
+using std::shared_ptr;
+using std::make_shared;
+
 #include <cassert>
 
-Bot::Bot(Vector2f position, int rotation, std::shared_ptr<Species> species) noexcept : 
-        m_instructionPointer{0}, m_species{species}, m_age{0}, m_rotation{rotation},
+Bot::Bot() noexcept : Bot({0.f, 0.f}, 0, nullptr) {}
+
+Bot::Bot(Vector2f position, int rotation, shared_ptr<Species> species) noexcept : 
+        m_instructionPointer{0}, m_age{0}, m_rotation{rotation},
         m_shape{{0.8f, 0.8f}}, m_directionShape{{0.1f, 0.3f}}, m_shouldDrawDirection{true} {
-    Color outlineColor = getOutlineColorFor(species->getColor());
+    setSpecies(species);
 
     m_shape.setOrigin(-0.1f, -0.1f);
-    m_shape.setPosition(position);
-    m_shape.setFillColor(species->getColor());
-    m_shape.setOutlineColor(outlineColor);
+    m_shape.setPosition(position);   
     m_shape.setOutlineThickness(0);
 
     m_directionShape.setOrigin(0.05f, 0.25f);
     m_directionShape.setPosition(position + Vector2f(0.5f, 0.5f));
-    m_directionShape.setFillColor(outlineColor);
     m_directionShape.setRotation(rotation * 45.f + 180.f);
 }
 
@@ -101,17 +104,4 @@ Decision Bot::makeDecision(int lifetime) noexcept {
     }
 
     return decision;
-}
-
-std::ostream& operator<< (std::ostream& os, const Bot& bot) noexcept {
-    os << 1 << ' '  << bot.m_instructionPointer << ' ' << bot.m_age << ' ' << *bot.m_species;
-    return os;
-}
-
-std::istream& operator>> (std::istream& is, Bot& bot) noexcept {
-    int version;
-    is >> version;
-    
-    is >> bot.m_instructionPointer >> bot.m_age >> *bot.m_species;
-    return is;
 }
