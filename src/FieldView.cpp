@@ -249,8 +249,8 @@ void FieldView::showGui() noexcept {
         if (m_tool != Tool::SELECT_BOT) m_selectedBot = {-1, -1};
 
         ImGui::BeginDisabled(m_tool != Tool::PLACE_BOT);
-        ImGui::Text("Current file");
-        with_ListBox ("##Current file", ImVec2(-FLT_MIN, 5.25f * ImGui::GetTextLineHeightWithSpacing())) {
+        ImGui::Text("Select bot");
+        with_ListBox ("##Select bot", ImVec2(-FLT_MIN, 5.25f * ImGui::GetTextLineHeightWithSpacing())) {
             const bool is_selected = (m_selectedFile == -1);
             if (ImGui::Selectable("Random", is_selected)) {
                 m_selectedFile = -1;
