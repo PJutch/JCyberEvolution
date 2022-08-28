@@ -105,17 +105,17 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
 
     switch (m_tool) {
         case Tool::SELECT_BOT:
-            if (!m_field.at(pos.y, pos.x).hasBot()) {
+            if (!m_field.at(pos.x, pos.y).hasBot()) {
                 selectBot({-1, -1});
             } else selectBot(Vector2i(pos.x, pos.y));
             return true;
         case Tool::DELETE_BOT:
-            m_field.at(pos.y, pos.x).deleteBot();
+            m_field.at(pos.x, pos.y).deleteBot();
             return true;
         case Tool::PLACE_BOT:
             if (!m_loadedBot) {
                 if (m_selectedFile == -1) {
-                    m_field.at(pos.y, pos.x).setBot(
+                    m_field.at(pos.x, pos.y).setBot(
                         make_unique<Bot>(Bot::createRandom(m_field.getRandomEngine())));
                     return true;
                 }
@@ -126,7 +126,7 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
                 file >> *m_loadedBot;
             }
 
-            m_field.at(pos.y, pos.x).setBot(make_unique<Bot>(*m_loadedBot));
+            m_field.at(pos.x, pos.y).setBot(make_unique<Bot>(*m_loadedBot));
             return true;
     }
 
@@ -304,7 +304,7 @@ void FieldView::showGui() noexcept {
                 if (m_selectedBot != Vector2i(-1, -1)) {
                     ofstream file{ImGuiFileDialog::Instance()->GetFilePathName()};
 
-                    Cell& cell = m_field.at(m_selectedBot.y, m_selectedBot.x);
+                    Cell& cell = m_field.at(m_selectedBot.x, m_selectedBot.y);
                     file << cell.getBot() << std::endl;
                 }
             }

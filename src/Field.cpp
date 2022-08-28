@@ -55,9 +55,9 @@ Field::Field(int width, int height, uint64_t seed) :
     m_borderShape.setOutlineColor(Color::Black);
     m_borderShape.setOutlineThickness(1.f);
 
-    for (int i = 0; i < m_height; ++ i) {
-        for (int j = 0; j < m_width; ++ j) {
-            emplace(i, j, Color::Green);
+    for (int y = 0; y < m_height; ++ y) {
+        for (int x = 0; x < m_width; ++ x) {
+            emplace(x, y, Color::Green);
         }
     }
 
@@ -70,14 +70,14 @@ Field::Field(int width, int height, uint64_t seed) :
     at(16, 16).createBot(0, species);
 }
 
-Vector2i Field::getSafeIndices(int i, int j) const noexcept {
-    i %= m_height;
-    if (i < 0) i += m_height;
+Vector2i Field::getSafeIndices(int x, int y) const noexcept {
+    y %= m_height;
+    if (y < 0) y += m_height;
 
-    j %= m_width;
-    if (j < 0) j += m_width;
+    x %= m_width;
+    if (x < 0) x += m_width;
 
-    return {i, j};
+    return {x, y};
 }
 
 void Field::update() noexcept {
@@ -91,13 +91,13 @@ void Field::update() noexcept {
         }
     }
 
-    for (int i = 0; i < m_height; ++ i)
-        for (int j = 0; j < m_width; ++ j) {
+    for (int y = 0; y < m_height; ++ y)
+        for (int x = 0; x < m_width; ++ x) {
             int startRotation = uniform_int_distribution(0, 7)(m_randomEngine);
             for (int rotation = startRotation; rotation < startRotation + 8; ++ rotation) {
-                auto [dj, di] = getOffsetForRotation(rotation % 8);
-                auto [iCurrent, jCurrent] = getSafeIndices(i + di, j + dj);
-                int index = iCurrent * m_width + jCurrent;
+                auto [dx, dy] = getOffsetForRotation(rotation % 8);
+                auto [xCurrent, yCurrent] = getSafeIndices(x + dx, y + dy);
+                int index = yCurrent * m_width + xCurrent;
 
                 Decision decision = decisions[index];
                 Cell& cell = m_cells[index];
@@ -109,39 +109,39 @@ void Field::update() noexcept {
 
                 switch (decision.instruction) {
                 case 1:
-                    if (!at(i, j).hasBot()) {
-                        at(i, j).setBot(make_unique<Bot>(bot));
-                        if (m_view) m_view->handleBotMoved({jCurrent, iCurrent}, {j, i});
+                    if (!at(x, y).hasBot()) {
+                        at(x, y).setBot(make_unique<Bot>(bot));
+                        if (m_view) m_view->handleBotMoved({xCurrent, yCurrent}, {x, y});
                         cell.setShouldDie(true);
                     }
                     break;
                 case 2:
-                    if (!at(i, j).hasBot()) {
+                    if (!at(x, y).hasBot()) {
                         shared_ptr<Species> parent = bot.getSpecies();
                         shared_ptr<Species> offspring = parent->createMutant(
                             m_randomEngine, m_epoch, m_mutationChance);
 
-                        at(i, j).createBot(bot.getRotation(), offspring);
+                        at(x, y).createBot(bot.getRotation(), offspring);
                     }
                     break;
                 case 4:
-                    if (at(i, j).isAlive()) {
-                        at(i, j).setShouldDie(true);
+                    if (at(x, y).isAlive()) {
+                        at(x, y).setShouldDie(true);
                     }
                     break;
                 default: break;
                 }
             }
 
-            if (decisions[i * m_width + j].instruction == 3 && at(i, j).isAlive()) {
-                at(i, j).setShouldDie(true);
+            if (decisions[y * m_width + x].instruction == 3 && at(x, y).isAlive()) {
+                at(x, y).setShouldDie(true);
             }
     }
 
-    for (int i = 0; i < m_height; ++ i)
-        for (int j = 0; j < m_width; ++ j) {
-            if (at(i, j).checkShouldDie()) {
-                if (m_view) m_view->handleBotDied({j, i});
+    for (int y = 0; y < m_height; ++ y)
+        for (int x = 0; x < m_width; ++ x) {
+            if (at(x, y).checkShouldDie()) {
+                if (m_view) m_view->handleBotDied({x, y});
             }
     }
 
@@ -159,10 +159,9 @@ int Field::computePopulation() const noexcept {
 void Field::draw(RenderTarget& target, RenderStates states) const noexcept {
     states.transform *= getTransform();
 
-    for (int i = 0; i < m_height; ++ i) {
-        for (int j = 0; j < m_width; ++ j) {
-            target.draw(at(i, j), states);
-        }
+    for (int y = 0; y < m_height; ++ y)
+        for (int x = 0; x < m_width; ++ x) {
+            target.draw(at(x, y), states);
     }
     if (m_shouldDrawBorder) target.draw(m_borderShape, states);
 }

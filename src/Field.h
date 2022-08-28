@@ -71,20 +71,20 @@ public:
 
     // i is y and j is x
     // unsafe, check indices by yourself
-    Cell& at(int i, int j) noexcept {
-        return m_cells[i * m_width + j];
+    Cell& at(int x, int y) noexcept {
+        return m_cells[y * m_width + x];
     }
 
     // i is y and j is x
     // unsafe, check indices by yourself
-    const Cell& at(int i, int j) const noexcept {
-        return m_cells[i * m_width + j];
+    const Cell& at(int x, int y) const noexcept {
+        return m_cells[y * m_width + x];
     }
 
     // automatically pass position to constructor
     template<typename... Args>
-    void emplace(int i, int j, Args&&... args) noexcept {
-        at(i, j) = Cell{sf::Vector2f(j, i), std::forward<Args>(args)...};
+    void emplace(int x, int y, Args&&... args) noexcept {
+        at(x, y) = Cell{sf::Vector2f(x, y), std::forward<Args>(args)...};
     }
 
     using iterator = std::vector<Cell>::iterator;
@@ -145,7 +145,7 @@ private:
 
     std::mt19937_64 m_randomEngine;
 
-    sf::Vector2i getSafeIndices(int i, int j) const noexcept;
+    sf::Vector2i getSafeIndices(int x, int y) const noexcept;
 };
 
 #endif
