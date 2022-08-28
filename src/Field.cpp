@@ -48,7 +48,7 @@ using std::abs;
 
 Field::Field(int width, int height, uint64_t seed) : 
         m_width{width}, m_height{height}, m_cells{width * height}, 
-        m_epoch{0}, m_lifetime{256}, m_view{nullptr}, m_shouldDrawBorder{false},
+        m_epoch{0}, m_lifetime{256}, m_mutationChance{0.001}, m_view{nullptr}, m_shouldDrawBorder{false},
         m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);
@@ -118,7 +118,8 @@ void Field::update() noexcept {
                 case 2:
                     if (!at(i, j).hasBot()) {
                         shared_ptr<Species> parent = bot.getSpecies();
-                        shared_ptr<Species> offspring = parent->createMutant(m_randomEngine, m_epoch);
+                        shared_ptr<Species> offspring = parent->createMutant(
+                            m_randomEngine, m_epoch, m_mutationChance);
 
                         at(i, j).createBot(bot.getRotation(), offspring);
                     }

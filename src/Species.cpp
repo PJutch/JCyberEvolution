@@ -58,13 +58,13 @@ shared_ptr<Species> Species::createRandom(mt19937_64& randomEngine) noexcept {
     return result;
 }
 
-shared_ptr<Species> Species::createMutant(mt19937_64& randomEngine, int epoch) noexcept {
+shared_ptr<Species> Species::createMutant(mt19937_64& randomEngine, int epoch, double mutationChance) noexcept {
     std::shared_ptr<Species> result;
 
     uniform_int_distribution<uint16_t> genomeDistribution;
     uniform_real_distribution canonicalDistribution{0.0, 1.0};
     for (int i = 0; i < ssize(m_genome); ++ i) {
-        if (canonicalDistribution(randomEngine) < 0.001) {
+        if (canonicalDistribution(randomEngine) < mutationChance) {
             if (!result) {
                 result = make_shared<Species>(m_color);
                 result->m_genome = m_genome;

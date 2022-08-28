@@ -327,5 +327,11 @@ void FieldView::showGui() noexcept {
         if (ImGui::SliderInt("Lifetime", &lifetime, 0, 1024)) {
             m_field.setLifetime(lifetime);
         }
+
+        float mutationChance = m_field.getMutationChance();
+        if (ImGui::SliderFloat("Mutation chance", &mutationChance, 0, 1, 
+                               "%.3f", ImGuiSliderFlags_Logarithmic)) {
+            m_field.setMutationChance(mutationChance);
+        }
     }
 }

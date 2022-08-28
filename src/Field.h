@@ -61,6 +61,14 @@ public:
         m_lifetime = lifetime;
     }
 
+    double getMutationChance() const noexcept {
+        return m_mutationChance;
+    }
+
+    void setMutationChance(double mutationChance) noexcept {
+        m_mutationChance = mutationChance;
+    }
+
     // i is y and j is x
     // unsafe, check indices by yourself
     Cell& at(int i, int j) noexcept {
@@ -128,6 +136,7 @@ private:
     int m_epoch;
 
     int m_lifetime;
+    double m_mutationChance;
 
     FieldView* m_view;
 

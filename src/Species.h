@@ -29,7 +29,8 @@ public:
     static std::shared_ptr<Species> createRandom(std::mt19937_64& randomEngine) noexcept;
 
     // return this if no mutation
-    std::shared_ptr<Species> createMutant(std::mt19937_64& randomEngine, int epoch) noexcept;
+    std::shared_ptr<Species> createMutant(std::mt19937_64& randomEngine, 
+                                          int epoch, double mutationChance) noexcept;
 
     // unsafe, check index by yourself
     uint16_t& operator[] (int i) noexcept {
