@@ -25,6 +25,11 @@ class FieldView;
 
 class Field : public sf::Transformable, public sf::Drawable {
 public:
+    enum class Topology {
+        TORUS,
+        PLANE
+    };
+
     Field(int width, int height, uint64_t seed);
 
     int getWidth() const noexcept {
@@ -67,6 +72,14 @@ public:
 
     void setMutationChance(double mutationChance) noexcept {
         m_mutationChance = mutationChance;
+    }
+
+    Topology getTopology() const noexcept {
+        return m_topology;
+    }
+
+    void setTopology(Topology topology) noexcept {
+        m_topology = topology;
     }
 
     // i is y and j is x
@@ -131,6 +144,7 @@ public:
 private:
     int m_width;
     int m_height;
+    Topology m_topology;
 
     std::vector<Cell> m_cells;
     int m_epoch;
@@ -145,7 +159,7 @@ private:
 
     std::mt19937_64 m_randomEngine;
 
-    sf::Vector2i getSafeIndices(int x, int y) const noexcept;
+    bool makeIndicesSafe(int& x, int& y) const noexcept;
 };
 
 #endif

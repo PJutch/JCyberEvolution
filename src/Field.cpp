@@ -25,6 +25,7 @@ using sf::RenderStates;
 using sf::Color;
 using sf::Vector2f;
 using sf::Vector2i;
+using sf::IntRect;
 using sf::Uint32;
 using sf::Uint8;
 
@@ -47,7 +48,7 @@ using std::numeric_limits;
 using std::abs;
 
 Field::Field(int width, int height, uint64_t seed) : 
-        m_width{width}, m_height{height}, m_cells{width * height}, 
+        m_width{width}, m_height{height}, m_topology{Topology::TORUS}, m_cells{width * height}, 
         m_epoch{0}, m_lifetime{256}, m_mutationChance{0.001}, m_view{nullptr}, m_shouldDrawBorder{false},
         m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
@@ -67,17 +68,22 @@ Field::Field(int width, int height, uint64_t seed) :
     for (int i = 5; i < 10; ++ i) (*species)[i] = 1;
     (*species)[11] = 7;
     for (int i = 12; i < 256; ++ i) (*species)[i] = 0;
-    at(16, 16).createBot(0, species);
+    at(2, 2).createBot(0, species);
 }
 
-Vector2i Field::getSafeIndices(int x, int y) const noexcept {
-    y %= m_height;
-    if (y < 0) y += m_height;
+bool Field::makeIndicesSafe(int& x, int& y) const noexcept {
+    switch (m_topology) {
+    case Topology::TORUS:
+        y %= m_height;
+        if (y < 0) y += m_height;
 
-    x %= m_width;
-    if (x < 0) x += m_width;
-
-    return {x, y};
+        x %= m_width;
+        if (x < 0) x += m_width;
+        return true;
+    case Topology::PLANE:
+        return IntRect(0, 0, m_width, m_height).contains(x, y);
+    }
+    return false;
 }
 
 void Field::update() noexcept {
@@ -96,7 +102,9 @@ void Field::update() noexcept {
             int startRotation = uniform_int_distribution(0, 7)(m_randomEngine);
             for (int rotation = startRotation; rotation < startRotation + 8; ++ rotation) {
                 auto [dx, dy] = getOffsetForRotation(rotation % 8);
-                auto [xCurrent, yCurrent] = getSafeIndices(x + dx, y + dy);
+                int xCurrent = x + dx, yCurrent = y + dy;
+
+                if (!makeIndicesSafe(xCurrent, yCurrent)) continue;
                 int index = yCurrent * m_width + xCurrent;
 
                 Decision decision = decisions[index];
@@ -163,7 +171,7 @@ void Field::draw(RenderTarget& target, RenderStates states) const noexcept {
         for (int x = 0; x < m_width; ++ x) {
             target.draw(at(x, y), states);
     }
-    if (m_shouldDrawBorder) target.draw(m_borderShape, states);
+    if (m_topology == Field::Topology::PLANE) target.draw(m_borderShape, states);
 }
 
 void Field::randomFill(float density) noexcept {

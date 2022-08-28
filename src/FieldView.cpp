@@ -193,34 +193,39 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
 
     target.setView(m_view);
 
-    if (m_shouldRepeat) {
-        Vector2f viewStart = m_view.getCenter() - m_view.getSize() / 2.f;
-        Vector2f viewEnd = m_view.getCenter() + m_view.getSize() / 2.f;
+    switch (m_field.getTopology()) {
+    case Field::Topology::TORUS: {
+            Vector2f viewStart = m_view.getCenter() - m_view.getSize() / 2.f;
+            Vector2f viewEnd = m_view.getCenter() + m_view.getSize() / 2.f;
 
-        Vector2f relativeFieldPos = m_field.getPosition() - viewStart;
-        Vector2f renderOffset{fmodf(relativeFieldPos.x, m_field.getWidth()), 
-                              fmodf(relativeFieldPos.y, m_field.getHeight())};
-    
+            Vector2f relativeFieldPos = m_field.getPosition() - viewStart;
+            Vector2f renderOffset{fmodf(relativeFieldPos.x, m_field.getWidth()), 
+                                fmodf(relativeFieldPos.y, m_field.getHeight())};
+        
 
-        Vector2f renderStart = viewStart + renderOffset - m_field.getSize();
+            Vector2f renderStart = viewStart + renderOffset - m_field.getSize();
 
-        for (float y = renderStart.y; y < viewEnd.y; y += m_field.getHeight()) {
-            for (float x = renderStart.x; x < viewEnd.x; x += m_field.getWidth()) {
-                RenderStates currentStates = states;
-                currentStates.transform.translate(x, y);
-                currentStates.transform.translate(-m_field.getPosition());
+            for (float y = renderStart.y; y < viewEnd.y; y += m_field.getHeight()) {
+                for (float x = renderStart.x; x < viewEnd.x; x += m_field.getWidth()) {
+                    RenderStates currentStates = states;
+                    currentStates.transform.translate(x, y);
+                    currentStates.transform.translate(-m_field.getPosition());
 
-                target.draw(m_field, currentStates);
+                    target.draw(m_field, currentStates);
 
-                currentStates.transform *= m_field.getTransform();
-                if (m_selectedBot != Vector2i(-1, -1)) target.draw(m_selectionShape, currentStates);
+                    currentStates.transform *= m_field.getTransform();
+                    if (m_selectedBot != Vector2i(-1, -1)) target.draw(m_selectionShape, currentStates);
+                }
             }
+            break;
         }
-    } else {
-        target.draw(m_field, states);
+    case Field::Topology::PLANE: {
+            target.draw(m_field, states);
 
-        states.transform *= m_field.getTransform();
-        if (m_selectedBot != Vector2i(-1, -1)) target.draw(m_selectionShape, states);
+            states.transform *= m_field.getTransform();
+            if (m_selectedBot != Vector2i(-1, -1)) target.draw(m_selectionShape, states);
+            break;
+        }
     }
 
     target.setView(prevView);
@@ -344,6 +349,14 @@ void FieldView::showGui() noexcept {
         if (ImGui::SliderFloat("Mutation chance", &mutationChance, 0, 1, 
                                "%.3f", ImGuiSliderFlags_Logarithmic)) {
             m_field.setMutationChance(mutationChance);
+        }
+    }
+
+    with_Window("Field") {
+        ImGui::Text("Topology");
+        int topology = static_cast<int>(m_field.getTopology());
+        if (ImGui::Combo("##Topology", &topology, "Torus\0Plane\0\0")) {
+            m_field.setTopology(static_cast<Field::Topology>(topology));
         }
     }
 }
