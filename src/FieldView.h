@@ -68,11 +68,6 @@ public:
         return m_paused ? 0 : m_simulationSpeed;
     }
 
-    void setShouldRepeat(bool shouldRepeat) noexcept {
-        m_shouldRepeat = shouldRepeat;
-        m_field.setShouldDrawBorder(!m_shouldRepeat);
-    }
-
     bool handleBotMoved(sf::Vector2i from, sf::Vector2i to) noexcept {
         if (from == m_selectedBot) {
             selectBot(to);
@@ -94,7 +89,6 @@ private:
 
     float m_zoom;
 
-    bool m_shouldRepeat;
     bool m_shouldDrawBots;
 
     float m_fillDensity;

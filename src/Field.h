@@ -26,7 +26,7 @@ class FieldView;
 class Field : public sf::Transformable, public sf::Drawable {
 public:
     enum class Topology {
-        TORUS,
+        TORUS = 0,
         PLANE
     };
 
@@ -134,10 +134,6 @@ public:
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
 
-    void setShouldDrawBorder(bool shouldDrawBorder) noexcept {
-        m_shouldDrawBorder = shouldDrawBorder;
-    }
-
     void setView(FieldView* view) noexcept {
         m_view = view;
     }
@@ -154,7 +150,6 @@ private:
 
     FieldView* m_view;
 
-    bool m_shouldDrawBorder;
     sf::RectangleShape m_borderShape;
 
     std::mt19937_64 m_randomEngine;

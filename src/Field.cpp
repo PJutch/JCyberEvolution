@@ -49,7 +49,7 @@ using std::abs;
 
 Field::Field(int width, int height, uint64_t seed) : 
         m_width{width}, m_height{height}, m_topology{Topology::TORUS}, m_cells{width * height}, 
-        m_epoch{0}, m_lifetime{256}, m_mutationChance{0.001}, m_view{nullptr}, m_shouldDrawBorder{false},
+        m_epoch{0}, m_lifetime{256}, m_mutationChance{0.001}, m_view{nullptr},
         m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);

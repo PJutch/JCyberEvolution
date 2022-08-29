@@ -60,7 +60,7 @@ const int POPULATION_HISTORY_SIZE = 128;
 
 FieldView::FieldView(Vector2f screenSize, Field& field) : 
         m_field{field}, m_view{FloatRect(0.f, 0.f, field.getWidth(), field.getHeight())}, 
-        m_zoom{1.0f}, m_shouldRepeat{true}, m_shouldDrawBots{true}, 
+        m_zoom{1.0f}, m_shouldDrawBots{true}, 
         m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false}, 
         m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
         m_recentFiles{}, m_selectedFile{-1}, m_loadedBot{nullptr}, 
@@ -103,7 +103,7 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
     }
 
     Vector2f pos = target.mapPixelToCoords({event.x, event.y}, m_view);
-    if (m_shouldRepeat) {
+    if (m_field.getTopology() == Field::Topology::TORUS) {
         pos = {fmodf(pos.x, m_field.getWidth()), fmodf(pos.y, m_field.getHeight())};
         if (pos.x < 0) pos.x += m_field.getWidth();
         if (pos.y < 0) pos.y += m_field.getHeight();
@@ -235,9 +235,6 @@ void FieldView::showGui() noexcept {
     with_Window("View") {
         if (ImGui::Checkbox("Show bots", &m_shouldDrawBots)) {
             for (Cell& cell : m_field) cell.setShouldDrawBot(m_shouldDrawBots);
-        }
-        if (ImGui::Checkbox("Repeat", &m_shouldRepeat)) {
-            setShouldRepeat(m_shouldRepeat);
         }
         if (ImGui::Button("To center")) {
             m_view.setCenter(m_field.getPosition() + m_field.getSize() / 2.f);
