@@ -27,6 +27,8 @@ using sf::Vector2i;
 using sf::Color;
 using sf::RenderTarget;
 using sf::RenderStates;
+using sf::RectangleShape;
+using sf::View;
 using sf::Transform;
 
 #include <SFML/System.hpp>
@@ -190,9 +192,14 @@ void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
 }
 
 void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
-    sf::View prevView = target.getView();
+    View prevView = target.getView();
 
-    sf::RectangleShape borderShape;
+    RectangleShape fieldBorderShape;
+    fieldBorderShape.setFillColor(Color::Transparent);
+    fieldBorderShape.setOutlineColor(Color::Black);
+    fieldBorderShape.setOutlineThickness(1.f);
+
+    RectangleShape borderShape;
     borderShape.setSize({prevView.getSize().x * m_view.getViewport().width,  
                         prevView.getSize().y * m_view.getViewport().height});
     borderShape.setPosition(prevView.getSize().x * m_view.getViewport().left,  
@@ -245,9 +252,15 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
                 target.draw(m_field, currentStates);
 
                 currentStates.transform *= m_field.getTransform();
-                if (m_selectedBot != Vector2i(-1, -1)) 
+                if (m_selectedBot != Vector2i(-1, -1)) {
                     target.draw(m_selectionShape, currentStates);
+                }
             }
+            
+            fieldBorderShape.setSize({m_field.getSize().x, m_view.getSize().y});
+            fieldBorderShape.setPosition(m_field.getPosition().x,
+                                         m_view.getCenter().y - m_view.getSize().y / 2);
+            target.draw(fieldBorderShape, states);
             break;
         }
     case Field::Topology::CYLINDER_X: {
@@ -265,16 +278,28 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
                 target.draw(m_field, currentStates);
 
                 currentStates.transform *= m_field.getTransform();
-                if (m_selectedBot != Vector2i(-1, -1)) 
+                if (m_selectedBot != Vector2i(-1, -1)) {
                     target.draw(m_selectionShape, currentStates);
+                }
             }
+
+            fieldBorderShape.setSize({m_view.getSize().x, m_field.getSize().y});
+            fieldBorderShape.setPosition(m_view.getCenter().x - m_view.getSize().x / 2, 
+                                         m_field.getPosition().y);
+            target.draw(fieldBorderShape, states);
             break;
         }
     case Field::Topology::PLANE: {
             target.draw(m_field, states);
 
+            fieldBorderShape.setSize(m_field.getSize());
+            fieldBorderShape.setPosition(m_field.getPosition());
+            target.draw(fieldBorderShape, states);
+
             states.transform *= m_field.getTransform();
-            if (m_selectedBot != Vector2i(-1, -1)) target.draw(m_selectionShape, states);
+            if (m_selectedBot != Vector2i(-1, -1)) {
+                target.draw(m_selectionShape, states);
+            }
             break;
         }
     }
