@@ -82,6 +82,14 @@ bool Field::makeIndicesSafe(int& x, int& y) const noexcept {
         return true;
     case Topology::PLANE:
         return IntRect(0, 0, m_width, m_height).contains(x, y);
+    case Topology::CYLINDER_Y:
+        y %= m_height;
+        if (y < 0) y += m_height;
+        return 0 <= x && x < m_width;
+    case Topology::CYLINDER_X:
+        x %= m_width;
+        if (x < 0) x += m_width;
+        return 0 <= y && y < m_height;
     }
     return false;
 }

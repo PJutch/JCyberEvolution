@@ -103,16 +103,27 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
     }
 
     Vector2f pos = target.mapPixelToCoords({event.x, event.y}, m_view);
-    if (m_field.getTopology() == Field::Topology::TORUS) {
+    switch (m_field.getTopology()) {
+    case Field::Topology::TORUS:
         pos = {fmodf(pos.x, m_field.getWidth()), fmodf(pos.y, m_field.getHeight())};
         if (pos.x < 0) pos.x += m_field.getWidth();
         if (pos.y < 0) pos.y += m_field.getHeight();
-    } else if (!m_field.getRect().contains(pos)) {
-        if (m_tool == Tool::SELECT_BOT) {
-            selectBot({-1, -1});
-            return true;
-        }
-        return false;
+        break;
+    case Field::Topology::CYLINDER_X:
+        if (pos.y < 0 || pos.y >= m_field.getWidth()) return handleOutsideClick();
+
+        pos.x = fmodf(pos.x, m_field.getWidth());
+        if (pos.x < 0) pos.x += m_field.getWidth();
+        break;
+    case Field::Topology::CYLINDER_Y:
+        if (pos.x < 0 || pos.x >= m_field.getHeight()) return handleOutsideClick();
+
+        pos.y = fmodf(pos.y, m_field.getHeight());
+        if (pos.y < 0) pos.y += m_field.getHeight();
+        break;
+    case Field::Topology::PLANE:
+        if (!m_field.getRect().contains(pos)) return handleOutsideClick();
+        break;
     }
 
     switch (m_tool) {
@@ -198,12 +209,11 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
             Vector2f viewStart = m_view.getCenter() - m_view.getSize() / 2.f;
             Vector2f viewEnd = m_view.getCenter() + m_view.getSize() / 2.f;
 
-            Vector2f relativeFieldPos = m_field.getPosition() - viewStart;
-            Vector2f renderOffset{fmodf(relativeFieldPos.x, m_field.getWidth()), 
-                                fmodf(relativeFieldPos.y, m_field.getHeight())};
-        
-
-            Vector2f renderStart = viewStart + renderOffset - m_field.getSize();
+            Vector2f renderStart{
+                getFirstInInterval(m_field.getPosition().x, m_field.getWidth(), 
+                                   viewStart.x, viewEnd.x),
+                getFirstInInterval(m_field.getPosition().y, m_field.getHeight(), 
+                                   viewStart.y, viewEnd.y)};
 
             for (float y = renderStart.y; y < viewEnd.y; y += m_field.getHeight()) {
                 for (float x = renderStart.x; x < viewEnd.x; x += m_field.getWidth()) {
@@ -214,8 +224,49 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
                     target.draw(m_field, currentStates);
 
                     currentStates.transform *= m_field.getTransform();
-                    if (m_selectedBot != Vector2i(-1, -1)) target.draw(m_selectionShape, currentStates);
+                    if (m_selectedBot != Vector2i(-1, -1)) 
+                        target.draw(m_selectionShape, currentStates);
                 }
+            }
+            break;
+        }
+    case Field::Topology::CYLINDER_Y: {
+            float viewStart = m_view.getCenter().y - m_view.getSize().y / 2.f;
+            float viewEnd = m_view.getCenter().y + m_view.getSize().y / 2.f;
+
+            float renderStart = getFirstInInterval(m_field.getPosition().y, m_field.getHeight(), 
+                viewStart, viewEnd);
+
+            for (float y = renderStart; y < viewEnd; y += m_field.getHeight()) {
+                RenderStates currentStates = states;
+                currentStates.transform.translate(0, y);
+                currentStates.transform.translate(0, -m_field.getPosition().y);
+
+                target.draw(m_field, currentStates);
+
+                currentStates.transform *= m_field.getTransform();
+                if (m_selectedBot != Vector2i(-1, -1)) 
+                    target.draw(m_selectionShape, currentStates);
+            }
+            break;
+        }
+    case Field::Topology::CYLINDER_X: {
+            float viewStart = m_view.getCenter().x - m_view.getSize().x / 2.f;
+            float viewEnd = m_view.getCenter().x + m_view.getSize().x / 2.f;
+
+            float renderStart = getFirstInInterval(m_field.getPosition().x, m_field.getHeight(), 
+                viewStart, viewEnd);
+
+            for (float x = renderStart; x < viewEnd; x += m_field.getHeight()) {
+                RenderStates currentStates = states;
+                currentStates.transform.translate(x, 0);
+                currentStates.transform.translate(-m_field.getPosition().x, 0);
+
+                target.draw(m_field, currentStates);
+
+                currentStates.transform *= m_field.getTransform();
+                if (m_selectedBot != Vector2i(-1, -1)) 
+                    target.draw(m_selectionShape, currentStates);
             }
             break;
         }
@@ -264,7 +315,8 @@ void FieldView::showGui() noexcept {
 
         ImGui::BeginDisabled(m_tool != Tool::PLACE_BOT);
         ImGui::Text("Select bot");
-        with_ListBox ("##Select bot", ImVec2(-FLT_MIN, 5.25f * ImGui::GetTextLineHeightWithSpacing())) {
+        with_ListBox ("##Select bot", 
+                ImVec2(-FLT_MIN, 5.25f * ImGui::GetTextLineHeightWithSpacing())) {
             const bool is_selected = (m_selectedFile == -1);
             if (ImGui::Selectable("Random", is_selected)) {
                 m_selectedFile = -1;
@@ -352,7 +404,7 @@ void FieldView::showGui() noexcept {
     with_Window("Field") {
         ImGui::Text("Topology");
         int topology = static_cast<int>(m_field.getTopology());
-        if (ImGui::Combo("##Topology", &topology, "Torus\0Plane\0\0")) {
+        if (ImGui::Combo("##Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0")) {
             m_field.setTopology(static_cast<Field::Topology>(topology));
         }
     }

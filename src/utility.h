@@ -36,4 +36,10 @@ float containerGetter(void* data, int index) noexcept {
     return static_cast<float>((*static_cast<T*>(data))[index]);
 }
 
+inline float getFirstInInterval(float pos, float length, float start, float end) {
+    float relativePos = pos - start;
+    float offset = fmodf(relativePos, length);
+    return start + offset - length;
+}
+
 #endif

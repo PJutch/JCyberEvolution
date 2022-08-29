@@ -27,6 +27,8 @@ class Field : public sf::Transformable, public sf::Drawable {
 public:
     enum class Topology {
         TORUS = 0,
+        CYLINDER_X,
+        CYLINDER_Y,
         PLANE
     };
 

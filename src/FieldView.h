@@ -123,6 +123,14 @@ private:
         m_selectedFile = index;
         m_loadedBot.reset();
     }
+
+    bool handleOutsideClick() noexcept {
+        if (m_tool == Tool::SELECT_BOT) {
+            selectBot({-1, -1});
+            return true;
+        }
+        return false;
+    }
 };
 
 #endif
