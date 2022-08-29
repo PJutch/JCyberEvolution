@@ -40,6 +40,11 @@ public:
         return m_rotation;
     }
 
+    void setRotation(int rotation) noexcept {
+        m_rotation = rotation;
+        m_directionShape.setRotation(-m_rotation * 45.f);
+    }
+
     std::shared_ptr<Species> getSpecies() const noexcept {
         return m_species;
     }

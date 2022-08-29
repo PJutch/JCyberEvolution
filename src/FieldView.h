@@ -131,6 +131,8 @@ private:
         }
         return false;
     }
+
+    void drawField(sf::RenderTarget& target, sf::RenderStates states) const noexcept;
 };
 
 #endif

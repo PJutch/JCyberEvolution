@@ -41,11 +41,16 @@ using std::make_unique;
 using std::make_shared;
 using std::shared_ptr;
 
+#include <utility>
+using std::swap;
+
 #include <limits>
 using std::numeric_limits;
 
 #include <cmath>
 using std::abs;
+
+#include <cassert>
 
 Field::Field(int width, int height, uint64_t seed) : 
         m_width{width}, m_height{height}, m_topology{Topology::TORUS}, m_cells{width * height}, 
@@ -63,22 +68,20 @@ Field::Field(int width, int height, uint64_t seed) :
     }
 
     auto species = make_shared<Species>(Color::Red);
-    for (int i = 0; i < 4; ++ i) (*species)[i] = 3;
-    (*species)[4] = 8;
-    for (int i = 5; i < 10; ++ i) (*species)[i] = 1;
-    (*species)[11] = 7;
-    for (int i = 12; i < 256; ++ i) (*species)[i] = 0;
+    for (int i = 0; i < 256; ++ i) (*species)[i] = 1;
     at(2, 2).createBot(0, species);
 }
 
-bool Field::makeIndicesSafe(int& x, int& y) const noexcept {
+bool Field::makeIndicesSafe(int& x, int& y, int* rotation) const noexcept {
+    if (rotation) *rotation %= 8;
+
     switch (m_topology) {
     case Topology::TORUS:
-        y %= m_height;
-        if (y < 0) y += m_height;
-
         x %= m_width;
         if (x < 0) x += m_width;
+
+        y %= m_height;
+        if (y < 0) y += m_height;
         return true;
     case Topology::PLANE:
         return IntRect(0, 0, m_width, m_height).contains(x, y);
@@ -90,6 +93,84 @@ bool Field::makeIndicesSafe(int& x, int& y) const noexcept {
         x %= m_width;
         if (x < 0) x += m_width;
         return 0 <= y && y < m_height;
+    case Topology::SPHERE_LEFT:
+        assert(m_width == m_height);
+
+        x %= 2 * m_width;
+        if (x < 0) x += 2 * m_width;
+
+        y %= 2 * m_height;
+        if (y < 0) y += 2 * m_height;
+
+        if (x < m_width) {
+            if (y >= m_height) {
+                swap(x, y);
+                x = 2 * m_width - x - 1;
+
+                if (rotation) {
+                    *rotation += 6;
+                    *rotation %= 8;
+                }
+            }
+        } else {
+            if (y < m_height) {
+                swap(x, y);
+                y = 2 * m_height - y - 1;
+
+                if (rotation) {    
+                    *rotation += 2;
+                    *rotation %= 8;
+                }
+            } else {
+                x = 2 * m_width - x - 1;
+                y = 2 * m_height - y - 1;
+
+                if (rotation) {    
+                    *rotation += 4;
+                    *rotation %= 8;
+                }
+            }
+        }
+        return true;
+    case Topology::SPHERE_RIGHT:
+        x %= 2 * m_width;
+        if (x < 0) x += 2 * m_width;
+
+        y %= 2 * m_height;
+        if (y < 0) y += 2 * m_height;
+
+        if (x < m_width) {
+            if (y >= m_height) {
+                swap(x, y);
+                x = x - m_height;
+                y = m_height - y - 1;
+
+                if (rotation) {   
+                    *rotation += 2;
+                    *rotation %= 8;
+                }
+            }
+        } else {
+            if (y < m_height) {
+                swap(x, y);
+                x = m_width - x - 1;
+                y = y - m_width;
+
+                if (rotation) {   
+                    *rotation += 6;
+                    *rotation %= 8;
+                }
+            } else {
+                x = 2 * m_width - x - 1;
+                y = 2 * m_height - y - 1;
+
+                if (rotation) {
+                    *rotation += 4;
+                    *rotation %= 8;
+                }
+            }
+        }
+        return true;
     }
     return false;
 }
@@ -111,8 +192,10 @@ void Field::update() noexcept {
             for (int rotation = startRotation; rotation < startRotation + 8; ++ rotation) {
                 auto [dx, dy] = getOffsetForRotation(rotation % 8);
                 int xCurrent = x + dx, yCurrent = y + dy;
+                int currentRotation = rotation;
 
-                if (!makeIndicesSafe(xCurrent, yCurrent)) continue;
+                if (!makeIndicesSafe(xCurrent, yCurrent, &currentRotation)) continue;
+                int rotationDelta = rotation % 8 - currentRotation;
                 int index = yCurrent * m_width + xCurrent;
 
                 Decision decision = decisions[index];
@@ -121,12 +204,15 @@ void Field::update() noexcept {
 
                 Bot& bot = cell.getBot();
                 // Skip if not rotated to current cell
-                if (!areOpposite(bot.getRotation(), rotation % 8)) continue;
+                if (!areOpposite(bot.getRotation(), currentRotation)) continue;
 
                 switch (decision.instruction) {
                 case 1:
                     if (!at(x, y).hasBot()) {
                         at(x, y).setBot(make_unique<Bot>(bot));
+                        int botRotation = at(x, y).getBot().getRotation();
+                        at(x, y).getBot().setRotation((botRotation + rotationDelta) % 8);
+
                         if (m_view) m_view->handleBotMoved({xCurrent, yCurrent}, {x, y});
                         cell.setShouldDie(true);
                     }
@@ -137,7 +223,7 @@ void Field::update() noexcept {
                         shared_ptr<Species> offspring = parent->createMutant(
                             m_randomEngine, m_epoch, m_mutationChance);
 
-                        at(x, y).createBot(bot.getRotation(), offspring);
+                        at(x, y).createBot((bot.getRotation() + rotationDelta) % 8, offspring);
                     }
                     break;
                 case 4:
@@ -145,7 +231,6 @@ void Field::update() noexcept {
                         at(x, y).setShouldDie(true);
                     }
                     break;
-                default: break;
                 }
             }
 

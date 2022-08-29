@@ -29,7 +29,9 @@ public:
         TORUS = 0,
         CYLINDER_X,
         CYLINDER_Y,
-        PLANE
+        PLANE,
+        SPHERE_LEFT,
+        SPHERE_RIGHT
     };
 
     Field(int width, int height, uint64_t seed);
@@ -49,6 +51,8 @@ public:
     sf::FloatRect getRect() const noexcept {
         return sf::FloatRect(getPosition().x, getPosition().y, m_width, m_height);
     }
+
+    bool makeIndicesSafe(int& x, int& y, int* rotation = nullptr) const noexcept;
 
     std::mt19937_64& getRandomEngine() noexcept {
         return m_randomEngine;
@@ -155,8 +159,6 @@ private:
     sf::RectangleShape m_borderShape;
 
     std::mt19937_64 m_randomEngine;
-
-    bool makeIndicesSafe(int& x, int& y) const noexcept;
 };
 
 #endif

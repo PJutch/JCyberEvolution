@@ -29,7 +29,7 @@ using std::make_shared;
 Bot::Bot() noexcept : Bot({0.f, 0.f}, 0, nullptr) {}
 
 Bot::Bot(Vector2f position, int rotation, shared_ptr<Species> species) noexcept : 
-        m_instructionPointer{0}, m_age{0}, m_rotation{rotation},
+        m_instructionPointer{0}, m_age{0},
         m_shape{{0.8f, 0.8f}}, m_directionShape{{0.1f, 0.3f}}, m_shouldDrawDirection{true} {
     setSpecies(species);
 
@@ -37,9 +37,9 @@ Bot::Bot(Vector2f position, int rotation, shared_ptr<Species> species) noexcept 
     m_shape.setPosition(position);   
     m_shape.setOutlineThickness(0);
 
-    m_directionShape.setOrigin(0.05f, 0.25f);
+    m_directionShape.setOrigin(0.05f, 0.05f);
     m_directionShape.setPosition(position + Vector2f(0.5f, 0.5f));
-    m_directionShape.setRotation(rotation * 45.f + 180.f);
+    setRotation(rotation);
 }
 
 Decision Bot::makeDecision(int lifetime) noexcept {
@@ -56,20 +56,18 @@ Decision Bot::makeDecision(int lifetime) noexcept {
             run = false;
             ++ m_instructionPointer;
             break;
-        case 2: // rotate right
-            if (++ m_rotation == 8) {
-                m_rotation = 0;
-            }
-            m_directionShape.setRotation(m_rotation * 45.f + 180.f);
+        case 2: { // rotate right
+            int newRotation = m_rotation + 1;
+            setRotation(newRotation == 8 ? 0 : newRotation);
             ++ m_instructionPointer;
             break;
-        case 3: // rotate left
-            if (-- m_rotation == -1) {
-                m_rotation = 7;
-            }
-            m_directionShape.setRotation(m_rotation * 45.f + 180.f);
+        }
+        case 3: { // rotate left
+            int newRotation = m_rotation - 1;
+            setRotation(newRotation == -1 ? 7 : newRotation);
             ++ m_instructionPointer;
             break;
+        }
         case 4: // jump to start
             m_instructionPointer = 0;
         case 5: // skip
