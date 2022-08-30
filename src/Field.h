@@ -31,7 +31,11 @@ public:
         CYLINDER_Y,
         PLANE,
         SPHERE_LEFT,
-        SPHERE_RIGHT
+        SPHERE_RIGHT,
+        CONE_LEFT_TOP,
+        CONE_RIGHT_TOP,
+        CONE_LEFT_BOTTOM,
+        CONE_RIGHT_BOTTOM
     };
 
     Field(int width, int height, uint64_t seed);

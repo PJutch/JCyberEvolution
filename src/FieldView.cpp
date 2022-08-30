@@ -312,6 +312,16 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
             }
             break;
         }
+    case Field::Topology::CONE_LEFT_TOP:
+        for (float rotation = 0.f; rotation < 360.f; rotation += 90.f) {
+            RenderStates currentStates = states;
+            currentStates.transform.rotate(rotation, m_field.getPosition());
+            drawField(target, currentStates);
+        }
+        fieldBorderShape.setSize({2.f * m_field.getSize()});
+        fieldBorderShape.setPosition(m_field.getPosition() - m_field.getSize());
+        target.draw(fieldBorderShape, states);
+        break;
     }
 
     target.setView(prevView);
@@ -440,7 +450,7 @@ void FieldView::showGui() noexcept {
         ImGui::Text("Topology");
         int topology = static_cast<int>(m_field.getTopology());
         if (ImGui::Combo("##Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
-                                                  "Sphere left\0Sphere right")) {
+                                                  "Sphere left\0Sphere right\0Cone left top")) {
             m_field.setTopology(static_cast<Field::Topology>(topology));
         }
     }
