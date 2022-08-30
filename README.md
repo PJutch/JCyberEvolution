@@ -1,15 +1,15 @@
 # JCyberEvolution
  
 ## About
-This is an [artifical life](https://en.wikipedia.org/wiki/Artificial_life) simulator with evolving executable DNA.
+This is an [artifical life](https://en.wikipedia.org/wiki/Artificial_life) simulator with an evolving executable DNA.
 
-Currently work in progress.
+Currently work is in progress.
 
 ## License
 JCyberEvolution is licensed under GNU General Public License 3
 
 ## Dependencies
-All dependencies are provided with this project in extlibs (as source or binaries)
+All dependencies are provided with this project in extlibs directory (as source or binaries)
 There are:
 - [SFML](https://www.sfml-dev.org)
 - [Dear Imgui](https://github.com/ocornut/imgui)
@@ -22,6 +22,6 @@ You can build this project with CMake under Windows with MSVC.
 
 Under Linux or with MinGW, you need to download or build SFML and link against it.
 (It should work, but hasn't been tested)
-May be will be fixed in the future.
+May be it will be fixed in the future.
 
-After build, copy the contents of extlibs/SFML/bin to the folder with executable.
+After build, copy the contents of extlibs/SFML/bin to the directory with executable.
