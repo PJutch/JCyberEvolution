@@ -64,8 +64,8 @@ public:
 
     void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
 
-    int getSimulationSpeed() const noexcept {
-        return m_paused ? 0 : m_simulationSpeed;
+    float getSimulationSpeed() const noexcept {
+        return m_paused ? 0.f : m_simulationSpeed;
     }
 
     bool handleBotMoved(sf::Vector2i from, sf::Vector2i to) noexcept {
@@ -92,7 +92,8 @@ private:
     bool m_shouldDrawBots;
 
     float m_fillDensity;
-    int m_simulationSpeed;
+    float m_simulationSpeed;
+    float m_simulationStepRest;
     bool m_paused;
 
     Tool m_tool;

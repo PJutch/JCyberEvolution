@@ -63,7 +63,7 @@ const int POPULATION_HISTORY_SIZE = 128;
 FieldView::FieldView(Vector2f screenSize, Field& field) : 
         m_field{field}, m_view{FloatRect(0.f, 0.f, field.getWidth(), field.getHeight())}, 
         m_zoom{1.0f}, m_shouldDrawBots{true}, 
-        m_fillDensity{0.5f}, m_simulationSpeed{1}, m_paused{false}, 
+        m_fillDensity{0.5f}, m_simulationSpeed{1.f}, m_simulationStepRest{0.f}, m_paused{false}, 
         m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
         m_recentFiles{}, m_selectedFile{-1}, m_loadedBot{nullptr}, 
         m_populationHistory(128, field.computePopulation()),
@@ -147,10 +147,13 @@ void FieldView::resize(float width, float height) noexcept {
 }
 
 void FieldView::updateField() noexcept {
-    for (int i = 0; i < getSimulationSpeed(); ++ i) {
+    m_simulationStepRest += getSimulationSpeed();
+    while (m_simulationStepRest >= 1.f) {
         m_field.update();
         m_populationHistory.pop_front();
         m_populationHistory.push_back(m_field.computePopulation());
+
+        -- m_simulationStepRest;
     }
 }
 
@@ -354,7 +357,7 @@ void FieldView::showGui() noexcept {
         if (ImGui::Button("To center")) {
             m_view.setCenter(m_field.getPosition() + m_field.getSize() / 2.f);
         }
-        ImGui::SliderInt("Simulation speed", &m_simulationSpeed, 0, 64);
+        ImGui::SliderFloat("Simulation speed", &m_simulationSpeed, 0.f, 16.f);
     }
 
     with_Window("Tools") {
