@@ -125,7 +125,7 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
                     return true;
                 }
 
-                ifstream file{ImGuiFileDialog::Instance()->GetFilePathName()};
+                ifstream file{m_recentFiles[m_selectedFile].second};
 
                 m_loadedBot = make_unique<Bot>();
                 file >> *m_loadedBot;
