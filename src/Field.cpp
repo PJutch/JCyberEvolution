@@ -69,7 +69,7 @@ Field::Field(int width, int height, uint64_t seed) :
 
     auto species = make_shared<Species>(Color::Red);
     for (int i = 0; i < 256; ++ i) (*species)[i] = 1;
-    at(2, 100).createBot(4, species);
+    at(2, 100).createBot(2, species);
 }
 
 bool Field::makeIndicesSafe(int& x, int& y, int* rotation) const noexcept {
@@ -202,6 +202,39 @@ bool Field::makeIndicesSafe(int& x, int& y, int* rotation) const noexcept {
 
             if (rotation) {    
                 *rotation += 6;
+                *rotation %= 8;
+            }
+        }
+        return true;
+    case Topology::CONE_RIGHT_TOP:
+        assert(m_width == m_height);
+
+        if (!IntRect{0, -m_height, 2 * m_width, 2 * m_height}.contains(x, y))
+            return false;
+
+        if (x >= m_width) {
+            if (y < 0) {
+                x = 2 * m_width - x - 1, y = -y - 1;
+
+                if (rotation) {
+                    *rotation += 4;
+                    *rotation %= 8;
+                }
+            } else {
+                swap(x, y);
+                x = m_width - x - 1, y = y - m_height;
+
+                if (rotation) {    
+                    *rotation += 6;
+                    *rotation %= 8;
+                }
+            }
+        } else if (y < 0) {
+            swap(x, y);
+           x = x + m_width, y = m_width - y - 1;
+
+            if (rotation) {    
+                *rotation += 2;
                 *rotation %= 8;
             }
         }

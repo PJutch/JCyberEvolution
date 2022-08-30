@@ -133,6 +133,7 @@ private:
     }
 
     void drawField(sf::RenderTarget& target, sf::RenderStates states) const noexcept;
+    void drawCone(sf::RenderTarget& target, sf::RenderStates states, sf::Vector2f apex) const noexcept;
 };
 
 #endif

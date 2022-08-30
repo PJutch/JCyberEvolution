@@ -179,6 +179,23 @@ void FieldView::drawField(RenderTarget& target, RenderStates states) const noexc
         target.draw(m_selectionShape, states);
 }
 
+void FieldView::drawCone(RenderTarget& target, RenderStates states, Vector2f apex) const noexcept {
+    for (float rotation = 0.f; rotation < 360.f; rotation += 90.f) {
+        RenderStates currentStates = states;
+        currentStates.transform.rotate(rotation, apex);
+        drawField(target, currentStates);
+    }
+
+    RectangleShape fieldBorderShape;
+    fieldBorderShape.setFillColor(Color::Transparent);
+    fieldBorderShape.setOutlineColor(Color::Black);
+    fieldBorderShape.setOutlineThickness(1.f);
+    fieldBorderShape.setSize({2.f * m_field.getSize()});
+    fieldBorderShape.setOrigin(m_field.getSize());
+    fieldBorderShape.setPosition(apex);
+    target.draw(fieldBorderShape, states);
+}
+
 void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
     View prevView = target.getView();
 
@@ -313,14 +330,16 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
             break;
         }
     case Field::Topology::CONE_LEFT_TOP:
-        for (float rotation = 0.f; rotation < 360.f; rotation += 90.f) {
-            RenderStates currentStates = states;
-            currentStates.transform.rotate(rotation, m_field.getPosition());
-            drawField(target, currentStates);
-        }
-        fieldBorderShape.setSize({2.f * m_field.getSize()});
-        fieldBorderShape.setPosition(m_field.getPosition() - m_field.getSize());
-        target.draw(fieldBorderShape, states);
+        drawCone(target, states, m_field.getPosition());
+        break;
+    case Field::Topology::CONE_RIGHT_TOP:
+        drawCone(target, states, m_field.getPosition() + Vector2f(m_field.getWidth(), 0));
+        break;
+    case Field::Topology::CONE_LEFT_BOTTOM:
+        drawCone(target, states, m_field.getPosition() + Vector2f(0, m_field.getHeight()));
+        break;
+    case Field::Topology::CONE_RIGHT_BOTTOM:
+        drawCone(target, states, m_field.getPosition() + m_field.getSize());
         break;
     }
 
@@ -450,7 +469,8 @@ void FieldView::showGui() noexcept {
         ImGui::Text("Topology");
         int topology = static_cast<int>(m_field.getTopology());
         if (ImGui::Combo("##Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
-                                                  "Sphere left\0Sphere right\0Cone left top")) {
+                                                  "Sphere left\0Sphere right\0Cone left top\0"
+                                                  "Cone right top\0")) {
             m_field.setTopology(static_cast<Field::Topology>(topology));
         }
     }
