@@ -470,7 +470,8 @@ void FieldView::showGui() noexcept {
         int topology = static_cast<int>(m_field.getTopology());
         if (ImGui::Combo("##Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
                                                   "Sphere left\0Sphere right\0Cone left top\0"
-                                                  "Cone right top\0")) {
+                                                  "Cone right top\0Cone left bottom\0"
+                                                  "Cone right bottom\0")) {
             m_field.setTopology(static_cast<Field::Topology>(topology));
         }
     }

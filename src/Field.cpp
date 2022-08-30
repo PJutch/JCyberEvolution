@@ -69,7 +69,7 @@ Field::Field(int width, int height, uint64_t seed) :
 
     auto species = make_shared<Species>(Color::Red);
     for (int i = 0; i < 256; ++ i) (*species)[i] = 1;
-    at(2, 100).createBot(2, species);
+    at(2, 100).createBot(0, species);
 }
 
 bool Field::makeIndicesSafe(int& x, int& y, int* rotation) const noexcept {
@@ -231,11 +231,80 @@ bool Field::makeIndicesSafe(int& x, int& y, int* rotation) const noexcept {
             }
         } else if (y < 0) {
             swap(x, y);
-           x = x + m_width, y = m_width - y - 1;
+            x = x + m_width, y = m_width - y - 1;
 
             if (rotation) {    
                 *rotation += 2;
                 *rotation %= 8;
+            }
+        }
+        return true;
+    case Topology::CONE_LEFT_BOTTOM:
+        assert(m_width == m_height);
+
+        if (!IntRect{-m_width, 0, 2 * m_width, 2 * m_height}.contains(x, y))
+            return false;
+
+        if (x < 0) {
+            if (y >= m_height) {
+                x = -x - 1, y = 2 * m_width - y - 1;
+
+                if (rotation) {
+                    *rotation += 4;
+                    *rotation %= 8;
+                }
+            } else {
+                swap(x, y);
+                x = m_height - x - 1, y = y + m_height;
+
+                if (rotation) {    
+                    *rotation += 6;
+                    *rotation %= 8;
+                }
+            }
+        } else if (y >= m_height) {
+            swap(x, y);
+            x = x - m_width, y = m_height - y - 1;
+
+            if (rotation) {    
+                *rotation += 2;
+                *rotation %= 8;
+            }
+        }
+        return true;
+    case Topology::CONE_RIGHT_BOTTOM:
+        assert(m_width == m_height);
+
+        if (!IntRect{0, 0, 2 * m_width, 2 * m_height}.contains(x, y))
+            return false;
+
+        if (x < m_width) {
+            if (y >= m_height) {
+                swap(x, y);
+                x = 2 * m_width - x - 1;
+
+                if (rotation) {
+                    *rotation += 6;
+                    *rotation %= 8;
+                }
+            }
+        } else {
+            if (y < m_height) {
+                swap(x, y);
+                y = 2 * m_height - y - 1;
+
+                if (rotation) {    
+                    *rotation += 2;
+                    *rotation %= 8;
+                }
+            } else {
+                x = 2 * m_width - x - 1;
+                y = 2 * m_height - y - 1;
+
+                if (rotation) {    
+                    *rotation += 4;
+                    *rotation %= 8;
+                }
             }
         }
         return true;
