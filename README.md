@@ -1,7 +1,8 @@
 # JCyberEvolution
  
 ## About
-This is an [artifical life](https://en.wikipedia.org/wiki/Artificial_life) simulator with evolving executable DNA
+This is an [artifical life](https://en.wikipedia.org/wiki/Artificial_life) simulator with evolving executable DNA.
+
 Currently work in progress.
 
 ## License
