@@ -71,8 +71,6 @@ int main(int argc, char** argv) {
     random_device randomDevice;
 
     auto field = make_unique<Field>(128, 256, randomDevice());
-    field->setPosition(0, 0);
-
     FieldView fieldView{{width, height}, move(field)};
 
     Clock clock;

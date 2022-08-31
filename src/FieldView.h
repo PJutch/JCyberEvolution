@@ -122,7 +122,7 @@ private:
         m_field = std::move(field);
         float side = std::max(m_field->getWidth(), m_field->getHeight());
         m_view.setSize(side, side);
-        m_view.setCenter(side / 2.f, side / 2.f);
+        m_view.setCenter(m_field->getPosition() + m_field->getSize() / 2.f);
         m_field->setView(this);
     }
 
