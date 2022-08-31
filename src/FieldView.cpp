@@ -347,6 +347,88 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
     target.setView(prevView);
 }
 
+void FieldView::showSelectBotTypeGui() noexcept {
+    ImGui::BeginDisabled(m_tool != Tool::PLACE_BOT);
+    ImGui::Text("Select bot type");
+    with_ListBox ("##Select bot type", 
+            ImVec2(-FLT_MIN, 5.25f * ImGui::GetTextLineHeightWithSpacing())) {
+        const bool is_selected = (m_selectedFile == -1);
+        if (ImGui::Selectable("Random", is_selected)) {
+            m_selectedFile = -1;
+            m_loadedBot.reset();
+        }
+            
+        if (is_selected)
+            ImGui::SetItemDefaultFocus();
+
+        for (int i = 0; i < ssize(m_recentFiles); i++) {
+            with_ID (i) {
+                const bool is_selected = (m_selectedFile == i);
+                if (ImGui::Selectable(m_recentFiles[i].first.c_str(), is_selected)) {
+                    m_selectedFile = i;
+                    m_loadedBot.reset();
+                }
+
+                if (is_selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+        }
+    }
+    if (ImGui::Button("Other...")) {
+        ImGuiFileDialog::Instance()->OpenDialog("Open bot", "Choose File", 
+            ".bot", ".", "", 1, nullptr, ImGuiFileDialogFlags_None);
+    }
+    ImGui::EndDisabled();
+
+    if (ImGuiFileDialog::Instance()->Display("Open bot")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            for (auto [name, path] : ImGuiFileDialog::Instance()->GetSelection()) {
+                if (ssize(m_recentFiles) >= 4) m_recentFiles.pop_back();
+                m_recentFiles.emplace_front(name, path);
+                m_selectedFile = 0;
+                m_loadedBot.reset();
+            }
+        }
+
+        ImGuiFileDialog::Instance()->Close();
+    }  
+}
+
+void FieldView::showSaveBotGui() noexcept {
+    ImGui::BeginDisabled(m_selectedBot == Vector2i(-1, -1));
+    if (ImGui::Button("Save selected bot")) {
+        ImGuiFileDialog::Instance()->OpenDialog("Save bot", "Choose File", 
+            ".bot", ".", "", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
+    }
+    ImGui::EndDisabled();
+
+    if (ImGuiFileDialog::Instance()->Display("Save bot")) {
+        if (ImGuiFileDialog::Instance()->IsOk()) {
+            if (m_selectedBot != Vector2i(-1, -1)) {
+                ofstream file{ImGuiFileDialog::Instance()->GetFilePathName()};
+
+                Cell& cell = m_field->at(m_selectedBot.x, m_selectedBot.y);
+                file << cell.getBot() << std::endl;
+            }
+        }
+
+        ImGuiFileDialog::Instance()->Close();
+    }  
+}
+
+void FieldView::showTopologyCombo() noexcept {
+    int topology = static_cast<int>(m_field->getTopology());
+    if (m_field->getWidth() == m_field->getHeight()) {
+        ImGui::Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
+                                                "Sphere left\0Sphere right\0Cone left top\0"
+                                                "Cone right top\0Cone left bottom\0"
+                                                "Cone right bottom\0");
+    } else {
+        ImGui::Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
+    }
+    m_field->setTopology(static_cast<Field::Topology>(topology));
+}
+
 void FieldView::showGui() noexcept {
     with_Window("View") {
         if (ImGui::Checkbox("Show bots", &m_shouldDrawBots)) {
@@ -372,76 +454,13 @@ void FieldView::showGui() noexcept {
             fill(m_populationHistory, 0);
         }
 
-        ImGui::Text("Mouse");
         int tool = static_cast<int>(m_tool);
-        ImGui::Combo("##Mouse", &tool, "Select bot\0Delete bot\0Place bot\0");
+        ImGui::Combo("Click tool", &tool, "Select bot\0Delete bot\0Place bot\0");
         m_tool = static_cast<Tool>(tool);
         if (m_tool != Tool::SELECT_BOT) m_selectedBot = {-1, -1};
 
-        ImGui::BeginDisabled(m_tool != Tool::PLACE_BOT);
-        ImGui::Text("Select bot");
-        with_ListBox ("##Select bot", 
-                ImVec2(-FLT_MIN, 5.25f * ImGui::GetTextLineHeightWithSpacing())) {
-            const bool is_selected = (m_selectedFile == -1);
-            if (ImGui::Selectable("Random", is_selected)) {
-                m_selectedFile = -1;
-                m_loadedBot.reset();
-            }
-                
-            if (is_selected)
-                ImGui::SetItemDefaultFocus();
-
-            for (int i = 0; i < ssize(m_recentFiles); i++) {
-                with_ID (i) {
-                    const bool is_selected = (m_selectedFile == i);
-                    if (ImGui::Selectable(m_recentFiles[i].first.c_str(), is_selected)) {
-                        m_selectedFile = i;
-                        m_loadedBot.reset();
-                    }
-
-                    if (is_selected)
-                        ImGui::SetItemDefaultFocus();
-                }
-            }
-        }
-        if (ImGui::Button("Other...")) {
-            ImGuiFileDialog::Instance()->OpenDialog("Open bot", "Choose File", 
-                ".bot", ".", "", 1, nullptr, ImGuiFileDialogFlags_None);
-        }
-        ImGui::EndDisabled();
-
-        if (ImGuiFileDialog::Instance()->Display("Open bot")) {
-            if (ImGuiFileDialog::Instance()->IsOk()) {
-                for (auto [name, path] : ImGuiFileDialog::Instance()->GetSelection()) {
-                    if (ssize(m_recentFiles) >= 4) m_recentFiles.pop_back();
-                    m_recentFiles.emplace_front(name, path);
-                    m_selectedFile = 0;
-                    m_loadedBot.reset();
-                }
-            }
-
-            ImGuiFileDialog::Instance()->Close();
-        }  
-
-        ImGui::BeginDisabled(m_selectedBot == Vector2i(-1, -1));
-        if (ImGui::Button("Save selected bot")) {
-            ImGuiFileDialog::Instance()->OpenDialog("Save bot", "Choose File", 
-                ".bot", ".", "", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
-        }
-        ImGui::EndDisabled();
-
-        if (ImGuiFileDialog::Instance()->Display("Save bot")) {
-            if (ImGuiFileDialog::Instance()->IsOk()) {
-                if (m_selectedBot != Vector2i(-1, -1)) {
-                    ofstream file{ImGuiFileDialog::Instance()->GetFilePathName()};
-
-                    Cell& cell = m_field->at(m_selectedBot.x, m_selectedBot.y);
-                    file << cell.getBot() << std::endl;
-                }
-            }
-
-            ImGuiFileDialog::Instance()->Close();
-        }  
+        showSelectBotTypeGui();
+        showSaveBotGui();
     }
 
     with_Window("Statistics") {
@@ -467,16 +486,6 @@ void FieldView::showGui() noexcept {
     }
 
     with_Window("Field") {
-        ImGui::Text("Topology");
-        int topology = static_cast<int>(m_field->getTopology());
-        if (m_field->getWidth() == m_field->getHeight()) {
-            ImGui::Combo("##Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
-                                                  "Sphere left\0Sphere right\0Cone left top\0"
-                                                  "Cone right top\0Cone left bottom\0"
-                                                  "Cone right bottom\0");
-        } else {
-            ImGui::Combo("##Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
-        }
-        m_field->setTopology(static_cast<Field::Topology>(topology));
+        showTopologyCombo();
     }
 }
