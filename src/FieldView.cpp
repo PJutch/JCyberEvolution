@@ -67,13 +67,14 @@ using std::fmodf;
 
 const int POPULATION_HISTORY_SIZE = 128;
 
-FieldView::FieldView(Vector2f screenSize, unique_ptr<Field>&& field) : 
-        m_field{nullptr}, m_view{},
+FieldView::FieldView(Vector2f screenSize, uint64_t seed) : 
+        m_field{nullptr}, m_fieldWidth{128}, m_fieldHeight{128}, m_fieldTopology{Field::Topology::TORUS},
+         m_randomEngine{seed}, m_view{},
         m_zoom{1.0f}, m_shouldDrawBots{true}, 
         m_fillDensity{0.5f}, m_simulationSpeed{1.f}, m_simulationStepRest{0.f}, m_paused{false}, 
         m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
         m_recentFiles{}, m_selectedFile{-1}, m_loadedBot{nullptr}, 
-        m_populationHistory(128, field->computePopulation()),
+        m_populationHistory(128, 0),
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     m_selectionShape.setFillColor(Color::Transparent);
     m_selectionShape.setOutlineColor(Color::Red);
@@ -81,10 +82,11 @@ FieldView::FieldView(Vector2f screenSize, unique_ptr<Field>&& field) :
     m_selectionShape.setOrigin(0.25, 0.25);
 
     resize(screenSize.x, screenSize.y);
-    setField(std::move(field));
 }
 
 bool FieldView::handleMouseWheelScrollEvent(const Event::MouseWheelScrollEvent& event) noexcept {
+    if (!m_field) return false;
+
     m_view.zoom(1 / m_zoom);
 
     float zoomChange = -event.delta;
@@ -101,6 +103,8 @@ bool FieldView::handleMouseWheelScrollEvent(const Event::MouseWheelScrollEvent& 
 
 bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& event, 
                                               const RenderTarget& target) noexcept {
+    if (!m_field) return false;
+
     if (!m_view.getViewport().contains(static_cast<float>(event.x) / target.getSize().x, 
             static_cast<float>(event.y) / target.getSize().y)) {
         if (m_tool == Tool::SELECT_BOT) {
@@ -145,6 +149,8 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
 }
 
 void FieldView::updateField() noexcept {
+    if (!m_field) return;
+
     m_simulationStepRest += getSimulationSpeed();
     while (m_simulationStepRest >= 1.f) {
         m_field->update();
@@ -156,6 +162,8 @@ void FieldView::updateField() noexcept {
 }
 
 void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
+    if (!m_field) return;
+
     if (keyboardAvailable) {
         float moved = m_baseMovingSpeed * elapsedTime.asSeconds();
         if (Keyboard::isKeyPressed(Keyboard::LShift)) moved *= m_speedModificator;
@@ -198,6 +206,8 @@ void FieldView::drawCone(RenderTarget& target, RenderStates states, Vector2f ape
 }
 
 void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
+    if (!m_field) return;
+
     View prevView = target.getView();
 
     RectangleShape fieldBorderShape;
@@ -418,74 +428,104 @@ void FieldView::showSaveBotGui() noexcept {
 
 void FieldView::showTopologyCombo() noexcept {
     int topology = static_cast<int>(m_field->getTopology());
+
     if (m_field->getWidth() == m_field->getHeight()) {
         ImGui::Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
-                                                "Sphere left\0Sphere right\0Cone left top\0"
-                                                "Cone right top\0Cone left bottom\0"
-                                                "Cone right bottom\0");
+                                            "Sphere left\0Sphere right\0Cone left top\0"
+                                            "Cone right top\0Cone left bottom\0"
+                                            "Cone right bottom\0");
     } else {
         ImGui::Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
     }
     m_field->setTopology(static_cast<Field::Topology>(topology));
 }
 
+void FieldView::showNewFieldTopologyCombo() noexcept {
+    int topology = static_cast<int>(m_fieldTopology);
+    
+    if (m_fieldWidth == m_fieldHeight) {
+        ImGui::Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
+                                            "Sphere left\0Sphere right\0Cone left top\0"
+                                            "Cone right top\0Cone left bottom\0"
+                                            "Cone right bottom\0");
+    } else {
+        if (topology > 3) topology = 0;
+        ImGui::Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
+    }
+    m_fieldTopology = static_cast<Field::Topology>(topology);
+}
+
 void FieldView::showGui() noexcept {
-    with_Window("View") {
-        if (ImGui::Checkbox("Show bots", &m_shouldDrawBots)) {
-            for (Cell& cell : *m_field) cell.setShouldDrawBot(m_shouldDrawBots);
-        }
-        if (ImGui::Button("To center")) {
-            m_view.setCenter(m_field->getPosition() + m_field->getSize() / 2.f);
-        }
-        ImGui::SliderFloat("Simulation speed", &m_simulationSpeed, 0.f, 16.f);
-    }
-
-    with_Window("Tools") {
-        ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
-        if (ImGui::Button("Random fill")) {
-            m_selectedBot = {-1, -1};
-            m_field->randomFill(m_fillDensity);
-            fill(m_populationHistory, m_field->computePopulation());
+    if (m_field) {
+        with_Window("View") {
+            if (ImGui::Checkbox("Show bots", &m_shouldDrawBots)) {
+                for (Cell& cell : *m_field) cell.setShouldDrawBot(m_shouldDrawBots);
+            }
+            if (ImGui::Button("To center")) {
+                m_view.setCenter(m_field->getPosition() + m_field->getSize() / 2.f);
+            }
+            ImGui::SliderFloat("Simulation speed", &m_simulationSpeed, 0.f, 16.f);
         }
 
-        if (ImGui::Button("Clear")) {
-            m_selectedBot = {-1, -1};
-            m_field->clear();
-            fill(m_populationHistory, 0);
+        with_Window("Tools") {
+            ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
+            if (ImGui::Button("Random fill")) {
+                m_selectedBot = {-1, -1};
+                m_field->randomFill(m_fillDensity);
+                fill(m_populationHistory, m_field->computePopulation());
+            }
+
+            if (ImGui::Button("Clear")) {
+                m_selectedBot = {-1, -1};
+                m_field->clear();
+                fill(m_populationHistory, 0);
+            }
+
+            int tool = static_cast<int>(m_tool);
+            ImGui::Combo("Click tool", &tool, "Select bot\0Delete bot\0Place bot\0");
+            m_tool = static_cast<Tool>(tool);
+            if (m_tool != Tool::SELECT_BOT) m_selectedBot = {-1, -1};
+
+            showSelectBotTypeGui();
+            showSaveBotGui();
         }
 
-        int tool = static_cast<int>(m_tool);
-        ImGui::Combo("Click tool", &tool, "Select bot\0Delete bot\0Place bot\0");
-        m_tool = static_cast<Tool>(tool);
-        if (m_tool != Tool::SELECT_BOT) m_selectedBot = {-1, -1};
+        with_Window("Statistics") {
+            ImGui::Text("Epoch: %i", m_field->getEpoch());
 
-        showSelectBotTypeGui();
-        showSaveBotGui();
-    }
-
-    with_Window("Statistics") {
-        ImGui::Text("Epoch: %i", m_field->getEpoch());
-
-        ImGui::Text("Population: %i", m_populationHistory.back());
-        ImGui::PlotLines("##Population", containerGetter<std::deque<int>>, &m_populationHistory, 
-                         POPULATION_HISTORY_SIZE, 0, NULL, 
-                         0.f, m_field->getWidth() * m_field->getHeight(), ImVec2(0, 80.0f));
-    }
-
-    with_Window("Life cycle") {
-        int lifetime = m_field->getLifetime();
-        if (ImGui::SliderInt("Lifetime", &lifetime, 0, 1024)) {
-            m_field->setLifetime(lifetime);
+            ImGui::Text("Population: %i", m_populationHistory.back());
+            ImGui::PlotLines("##Population", containerGetter<std::deque<int>>, &m_populationHistory, 
+                            POPULATION_HISTORY_SIZE, 0, NULL, 
+                            0.f, m_field->getWidth() * m_field->getHeight(), ImVec2(0, 80.0f));
         }
 
-        float mutationChance = m_field->getMutationChance();
-        if (ImGui::SliderFloat("Mutation chance", &mutationChance, 0, 1, 
-                               "%.3f", ImGuiSliderFlags_Logarithmic)) {
-            m_field->setMutationChance(mutationChance);
-        }
-    }
+        with_Window("Life cycle") {
+            int lifetime = m_field->getLifetime();
+            if (ImGui::SliderInt("Lifetime", &lifetime, 0, 1024)) {
+                m_field->setLifetime(lifetime);
+            }
 
-    with_Window("Field") {
-        showTopologyCombo();
+            float mutationChance = m_field->getMutationChance();
+            if (ImGui::SliderFloat("Mutation chance", &mutationChance, 0, 1, 
+                                "%.3f", ImGuiSliderFlags_Logarithmic)) {
+                m_field->setMutationChance(mutationChance);
+            }
+        }
+
+        with_Window("Field") {
+            showTopologyCombo();
+            if (ImGui::Button("New")) m_field.reset();
+        }
+    } else {
+        with_Window("New field") {
+            ImGui::SliderInt("Width", &m_fieldWidth, 16, 1024);
+            ImGui::SliderInt("Height", &m_fieldHeight, 16, 1024);
+            showNewFieldTopologyCombo();
+            if (ImGui::Button("Create")) {
+                setField(make_unique<Field>(m_fieldWidth, m_fieldHeight, m_randomEngine()));
+                m_field->setTopology(m_fieldTopology);
+            }
+        }
+        return;
     }
 }

@@ -69,9 +69,7 @@ int main(int argc, char** argv) {
     ImGuiIO& io = ImGui::GetIO();
 
     random_device randomDevice;
-
-    auto field = make_unique<Field>(128, 256, randomDevice());
-    FieldView fieldView{{width, height}, move(field)};
+    FieldView fieldView{{width, height}, randomDevice()};
 
     Clock clock;
     Time timeBeforeUpdate = Time::Zero;

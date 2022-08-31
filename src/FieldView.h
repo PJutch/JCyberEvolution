@@ -35,7 +35,7 @@ public:
         PLACE_BOT,
     };
 
-    FieldView(sf::Vector2f screenSize, std::unique_ptr<Field>&& field);
+    FieldView(sf::Vector2f screenSize, uint64_t seed);
 
     // return true if handled
     bool handleMouseWheelScrollEvent(const sf::Event::MouseWheelScrollEvent& event) noexcept;
@@ -46,6 +46,7 @@ public:
     }
 
     bool handleKeyPressedEvent(const sf::Event::KeyEvent& event) noexcept {
+        if (!m_field) return false;
         if (event.code == sf::Keyboard::Space) {
             m_paused = !m_paused;
             return true;
@@ -85,6 +86,11 @@ public:
     }
 private:
     std::unique_ptr<Field> m_field;
+    int m_fieldWidth;
+    int m_fieldHeight;
+    Field::Topology m_fieldTopology;
+    std::mt19937_64 m_randomEngine;
+
     sf::View m_view;
 
     float m_zoom;
@@ -153,6 +159,7 @@ private:
     void showSelectBotTypeGui() noexcept;
     void showSaveBotGui() noexcept;
     void showTopologyCombo() noexcept;
+    void showNewFieldTopologyCombo() noexcept;
 };
 
 #endif
