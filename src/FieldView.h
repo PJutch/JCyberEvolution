@@ -35,7 +35,7 @@ public:
         PLACE_BOT,
     };
 
-    FieldView(sf::Vector2f screenSize, Field& field);
+    FieldView(sf::Vector2f screenSize, std::unique_ptr<Field>&& field);
 
     // return true if handled
     bool handleMouseWheelScrollEvent(const sf::Event::MouseWheelScrollEvent& event) noexcept;
@@ -84,7 +84,7 @@ public:
         return false;
     }
 private:
-    Field& m_field;
+    std::unique_ptr<Field> m_field;
     sf::View m_view;
 
     float m_zoom;
@@ -110,7 +110,21 @@ private:
     float m_baseMovingSpeed;
     float m_speedModificator;
 
-    void resize(float width, float height) noexcept;
+    void resize(float width, float height) noexcept {
+        if (width > height)  {
+            m_view.setViewport({0.f, 0.f, height / width, 1.f});
+        } else {
+            m_view.setViewport({0.f, 0.f, 1.f, width / height});
+        }
+    }
+
+    void setField(std::unique_ptr<Field>&& field) noexcept {
+        m_field = std::move(field);
+        float side = std::max(m_field->getWidth(), m_field->getHeight());
+        m_view.setSize(side, side);
+        m_view.setCenter(side / 2.f, side / 2.f);
+        m_field->setView(this);
+    }
 
     void selectBot(sf::Vector2i coords) noexcept {
         m_selectedBot = coords;

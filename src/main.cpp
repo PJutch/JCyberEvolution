@@ -47,6 +47,11 @@ using std::endl;
 #include <string>
 using std::string;
 
+#include <memory>
+using std::make_unique;
+
+using std::move;
+
 #include <algorithm>
 using std::clamp;
 
@@ -65,12 +70,10 @@ int main(int argc, char** argv) {
 
     random_device randomDevice;
 
-    Field field{128, 128, randomDevice()};
-    field.setPosition(0, 0);
+    auto field = make_unique<Field>(128, 256, randomDevice());
+    field->setPosition(0, 0);
 
-    FieldView fieldView{{width, height}, field};
-
-    float baseMovingSpeed = 100.0f;
+    FieldView fieldView{{width, height}, move(field)};
 
     Clock clock;
     Time timeBeforeUpdate = Time::Zero;

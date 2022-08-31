@@ -48,10 +48,17 @@ using std::ofstream;
 #include <array>
 using std::array;
 
+#include <string>
+using std::string;
+
 using std::ssize;
 
 #include <memory>
 using std::make_unique;
+using std::unique_ptr;
+
+#include <algorithm>
+using std::max;
 
 #include <cmath>
 using std::pow;
@@ -60,22 +67,21 @@ using std::fmodf;
 
 const int POPULATION_HISTORY_SIZE = 128;
 
-FieldView::FieldView(Vector2f screenSize, Field& field) : 
-        m_field{field}, m_view{FloatRect(0.f, 0.f, field.getWidth(), field.getHeight())}, 
+FieldView::FieldView(Vector2f screenSize, unique_ptr<Field>&& field) : 
+        m_field{nullptr}, m_view{},
         m_zoom{1.0f}, m_shouldDrawBots{true}, 
         m_fillDensity{0.5f}, m_simulationSpeed{1.f}, m_simulationStepRest{0.f}, m_paused{false}, 
         m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
         m_recentFiles{}, m_selectedFile{-1}, m_loadedBot{nullptr}, 
-        m_populationHistory(128, field.computePopulation()),
+        m_populationHistory(128, field->computePopulation()),
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     m_selectionShape.setFillColor(Color::Transparent);
     m_selectionShape.setOutlineColor(Color::Red);
     m_selectionShape.setOutlineThickness(0.25);
     m_selectionShape.setOrigin(0.25, 0.25);
 
-    m_field.setView(this);
-    
     resize(screenSize.x, screenSize.y);
+    setField(std::move(field));
 }
 
 bool FieldView::handleMouseWheelScrollEvent(const Event::MouseWheelScrollEvent& event) noexcept {
@@ -106,22 +112,22 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
 
     Vector2f posf = target.mapPixelToCoords({event.x, event.y}, m_view);
     Vector2i pos(posf.x, posf.y);
-    if (!m_field.makeIndicesSafe(pos.x, pos.y)) return handleOutsideClick();
+    if (!m_field->makeIndicesSafe(pos.x, pos.y)) return handleOutsideClick();
 
     switch (m_tool) {
         case Tool::SELECT_BOT:
-            if (!m_field.at(pos.x, pos.y).hasBot()) {
+            if (!m_field->at(pos.x, pos.y).hasBot()) {
                 selectBot({-1, -1});
             } else selectBot(Vector2i(pos.x, pos.y));
             return true;
         case Tool::DELETE_BOT:
-            m_field.at(pos.x, pos.y).deleteBot();
+            m_field->at(pos.x, pos.y).deleteBot();
             return true;
         case Tool::PLACE_BOT:
             if (!m_loadedBot) {
                 if (m_selectedFile == -1) {
-                    m_field.at(pos.x, pos.y).setBot(
-                        make_unique<Bot>(Bot::createRandom(m_field.getRandomEngine())));
+                    m_field->at(pos.x, pos.y).setBot(
+                        make_unique<Bot>(Bot::createRandom(m_field->getRandomEngine())));
                     return true;
                 }
 
@@ -131,27 +137,19 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
                 file >> *m_loadedBot;
             }
 
-            m_field.at(pos.x, pos.y).setBot(make_unique<Bot>(*m_loadedBot));
+            m_field->at(pos.x, pos.y).setBot(make_unique<Bot>(*m_loadedBot));
             return true;
     }
 
     return false;
 }
 
-void FieldView::resize(float width, float height) noexcept {
-    if (width > height)  {
-        m_view.setViewport({0.f, 0.f, height / width, 1.f});
-    } else {
-        m_view.setViewport({0.f, 0.f, 1.f, width / height});
-    }
-}
-
 void FieldView::updateField() noexcept {
     m_simulationStepRest += getSimulationSpeed();
     while (m_simulationStepRest >= 1.f) {
-        m_field.update();
+        m_field->update();
         m_populationHistory.pop_front();
-        m_populationHistory.push_back(m_field.computePopulation());
+        m_populationHistory.push_back(m_field->computePopulation());
 
         -- m_simulationStepRest;
     }
@@ -175,9 +173,9 @@ void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
 }
 
 void FieldView::drawField(RenderTarget& target, RenderStates states) const noexcept {
-    target.draw(m_field, states);
+    target.draw(*m_field, states);
 
-    states.transform *= m_field.getTransform();
+    states.transform *= m_field->getTransform();
     if (m_selectedBot != Vector2i(-1, -1)) 
         target.draw(m_selectionShape, states);
 }
@@ -193,8 +191,8 @@ void FieldView::drawCone(RenderTarget& target, RenderStates states, Vector2f ape
     fieldBorderShape.setFillColor(Color::Transparent);
     fieldBorderShape.setOutlineColor(Color::Black);
     fieldBorderShape.setOutlineThickness(1.f);
-    fieldBorderShape.setSize({2.f * m_field.getSize()});
-    fieldBorderShape.setOrigin(m_field.getSize());
+    fieldBorderShape.setSize({2.f * m_field->getSize()});
+    fieldBorderShape.setOrigin(m_field->getSize());
     fieldBorderShape.setPosition(apex);
     target.draw(fieldBorderShape, states);
 }
@@ -222,79 +220,79 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
     Vector2f viewStart = m_view.getCenter() - m_view.getSize() / 2.f;
     Vector2f viewEnd   = m_view.getCenter() + m_view.getSize() / 2.f;
 
-    switch (m_field.getTopology()) {
+    switch (m_field->getTopology()) {
     case Field::Topology::TORUS: {
             Vector2f renderStart{
-                getFirstInInterval(m_field.getPosition().x, m_field.getWidth(), 
+                getFirstInInterval(m_field->getPosition().x, m_field->getWidth(), 
                                    viewStart.x, viewEnd.x),
-                getFirstInInterval(m_field.getPosition().y, m_field.getHeight(), 
+                getFirstInInterval(m_field->getPosition().y, m_field->getHeight(), 
                                    viewStart.y, viewEnd.y)};
 
-            for (float y = renderStart.y; y < viewEnd.y; y += m_field.getHeight())
-                for (float x = renderStart.x; x < viewEnd.x; x += m_field.getWidth()) {
+            for (float y = renderStart.y; y < viewEnd.y; y += m_field->getHeight())
+                for (float x = renderStart.x; x < viewEnd.x; x += m_field->getWidth()) {
                     RenderStates currentStates = states;
                     currentStates.transform.translate(x, y);
-                    currentStates.transform.translate(-m_field.getPosition());
+                    currentStates.transform.translate(-m_field->getPosition());
                     drawField(target, currentStates);
             }
             break;
         }
     case Field::Topology::CYLINDER_Y: {
-            float renderStart = getFirstInInterval(m_field.getPosition().y, m_field.getHeight(), 
+            float renderStart = getFirstInInterval(m_field->getPosition().y, m_field->getHeight(), 
                 viewStart.y, viewEnd.y);
 
-            for (float y = renderStart; y < viewEnd.y; y += m_field.getHeight()) {
+            for (float y = renderStart; y < viewEnd.y; y += m_field->getHeight()) {
                 RenderStates currentStates = states;
                 currentStates.transform.translate(0, y);
-                currentStates.transform.translate(0, -m_field.getPosition().y);
+                currentStates.transform.translate(0, -m_field->getPosition().y);
                 drawField(target, currentStates);
             }
             
-            fieldBorderShape.setSize({m_field.getSize().x, m_view.getSize().y});
-            fieldBorderShape.setPosition(m_field.getPosition().x,
+            fieldBorderShape.setSize({m_field->getSize().x, m_view.getSize().y});
+            fieldBorderShape.setPosition(m_field->getPosition().x,
                                          m_view.getCenter().y - m_view.getSize().y / 2);
             target.draw(fieldBorderShape, states);
             break;
         }
     case Field::Topology::CYLINDER_X: {
-            float renderStart = getFirstInInterval(m_field.getPosition().x, m_field.getHeight(), 
+            float renderStart = getFirstInInterval(m_field->getPosition().x, m_field->getHeight(), 
                 viewStart.x, viewEnd.x);
 
-            for (float x = renderStart; x < viewEnd.x; x += m_field.getHeight()) {
+            for (float x = renderStart; x < viewEnd.x; x += m_field->getHeight()) {
                 RenderStates currentStates = states;
                 currentStates.transform.translate(x, 0);
-                currentStates.transform.translate(-m_field.getPosition().x, 0);
+                currentStates.transform.translate(-m_field->getPosition().x, 0);
                 drawField(target, currentStates);
             }
 
-            fieldBorderShape.setSize({m_view.getSize().x, m_field.getSize().y});
+            fieldBorderShape.setSize({m_view.getSize().x, m_field->getSize().y});
             fieldBorderShape.setPosition(m_view.getCenter().x - m_view.getSize().x / 2, 
-                                         m_field.getPosition().y);
+                                         m_field->getPosition().y);
             target.draw(fieldBorderShape, states);
             break;
         }
     case Field::Topology::PLANE:
         drawField(target, states);
-        fieldBorderShape.setSize(m_field.getSize());
-        fieldBorderShape.setPosition(m_field.getPosition());
+        fieldBorderShape.setSize(m_field->getSize());
+        fieldBorderShape.setPosition(m_field->getPosition());
         target.draw(fieldBorderShape, states);
         break;
     case Field::Topology::SPHERE_LEFT: {
             Vector2f renderStart{
-                getFirstInInterval(m_field.getPosition().x, 2 * m_field.getWidth(), 
+                getFirstInInterval(m_field->getPosition().x, 2 * m_field->getWidth(), 
                                    viewStart.x, viewEnd.x),
-                getFirstInInterval(m_field.getPosition().y, 2 * m_field.getHeight(), 
+                getFirstInInterval(m_field->getPosition().y, 2 * m_field->getHeight(), 
                                    viewStart.y, viewEnd.y)};
 
-            for (float y = renderStart.y; y < viewEnd.y; y += 2 * m_field.getHeight())
-                for (float x = renderStart.x; x < viewEnd.x; x += 2 * m_field.getWidth()) {
+            for (float y = renderStart.y; y < viewEnd.y; y += 2 * m_field->getHeight())
+                for (float x = renderStart.x; x < viewEnd.x; x += 2 * m_field->getWidth()) {
                     RenderStates translatedStates = states;
                     translatedStates.transform.translate(x, y);
-                    translatedStates.transform.translate(-m_field.getPosition());
+                    translatedStates.transform.translate(-m_field->getPosition());
 
                     for (float rotation = 0.f; rotation < 360.f; rotation += 90.f) {
                         RenderStates currentStates = translatedStates;
-                        currentStates.transform.rotate(rotation, m_field.getPosition() + m_field.getSize());
+                        currentStates.transform.rotate(rotation, m_field->getPosition() + m_field->getSize());
                         drawField(target, currentStates);
                     }
             }
@@ -302,47 +300,47 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
         }
     case Field::Topology::SPHERE_RIGHT: {
             Vector2f renderStart{
-                getFirstInInterval(m_field.getPosition().x, 2 * m_field.getWidth(), 
+                getFirstInInterval(m_field->getPosition().x, 2 * m_field->getWidth(), 
                                    viewStart.x, viewEnd.x),
-                getFirstInInterval(m_field.getPosition().y, 2 * m_field.getHeight(), 
+                getFirstInInterval(m_field->getPosition().y, 2 * m_field->getHeight(), 
                                    viewStart.y, viewEnd.y)};
 
-            for (float y = renderStart.y; y < viewEnd.y; y += 2 * m_field.getHeight())
-                for (float x = renderStart.x; x < viewEnd.x; x += 2 * m_field.getWidth()) {
+            for (float y = renderStart.y; y < viewEnd.y; y += 2 * m_field->getHeight())
+                for (float x = renderStart.x; x < viewEnd.x; x += 2 * m_field->getWidth()) {
                     RenderStates translatedStates = states;
                     translatedStates.transform.translate(x, y);
-                    translatedStates.transform.translate(-m_field.getPosition());
+                    translatedStates.transform.translate(-m_field->getPosition());
                     drawField(target, translatedStates);
 
                     RenderStates currentStates = translatedStates;
                     currentStates.transform.rotate(-90.f, 
-                        m_field.getPosition().x + m_field.getWidth(), m_field.getPosition().y);
+                        m_field->getPosition().x + m_field->getWidth(), m_field->getPosition().y);
                     drawField(target, currentStates);
 
                     currentStates = translatedStates;
                     currentStates.transform.rotate(180.f, 
-                        m_field.getPosition().x + m_field.getWidth(), 
-                        m_field.getPosition().y + m_field.getHeight());
+                        m_field->getPosition().x + m_field->getWidth(), 
+                        m_field->getPosition().y + m_field->getHeight());
                     drawField(target, currentStates);
 
                     currentStates = translatedStates;
-                    currentStates.transform.rotate(90.f, m_field.getPosition().x, 
-                        m_field.getPosition().y + m_field.getHeight());
+                    currentStates.transform.rotate(90.f, m_field->getPosition().x, 
+                        m_field->getPosition().y + m_field->getHeight());
                     drawField(target, currentStates);
             }
             break;
         }
     case Field::Topology::CONE_LEFT_TOP:
-        drawCone(target, states, m_field.getPosition());
+        drawCone(target, states, m_field->getPosition());
         break;
     case Field::Topology::CONE_RIGHT_TOP:
-        drawCone(target, states, m_field.getPosition() + Vector2f(m_field.getWidth(), 0));
+        drawCone(target, states, m_field->getPosition() + Vector2f(m_field->getWidth(), 0));
         break;
     case Field::Topology::CONE_LEFT_BOTTOM:
-        drawCone(target, states, m_field.getPosition() + Vector2f(0, m_field.getHeight()));
+        drawCone(target, states, m_field->getPosition() + Vector2f(0, m_field->getHeight()));
         break;
     case Field::Topology::CONE_RIGHT_BOTTOM:
-        drawCone(target, states, m_field.getPosition() + m_field.getSize());
+        drawCone(target, states, m_field->getPosition() + m_field->getSize());
         break;
     }
 
@@ -352,10 +350,10 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
 void FieldView::showGui() noexcept {
     with_Window("View") {
         if (ImGui::Checkbox("Show bots", &m_shouldDrawBots)) {
-            for (Cell& cell : m_field) cell.setShouldDrawBot(m_shouldDrawBots);
+            for (Cell& cell : *m_field) cell.setShouldDrawBot(m_shouldDrawBots);
         }
         if (ImGui::Button("To center")) {
-            m_view.setCenter(m_field.getPosition() + m_field.getSize() / 2.f);
+            m_view.setCenter(m_field->getPosition() + m_field->getSize() / 2.f);
         }
         ImGui::SliderFloat("Simulation speed", &m_simulationSpeed, 0.f, 16.f);
     }
@@ -364,13 +362,13 @@ void FieldView::showGui() noexcept {
         ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
         if (ImGui::Button("Random fill")) {
             m_selectedBot = {-1, -1};
-            m_field.randomFill(m_fillDensity);
-            fill(m_populationHistory, m_field.computePopulation());
+            m_field->randomFill(m_fillDensity);
+            fill(m_populationHistory, m_field->computePopulation());
         }
 
         if (ImGui::Button("Clear")) {
             m_selectedBot = {-1, -1};
-            m_field.clear();
+            m_field->clear();
             fill(m_populationHistory, 0);
         }
 
@@ -437,7 +435,7 @@ void FieldView::showGui() noexcept {
                 if (m_selectedBot != Vector2i(-1, -1)) {
                     ofstream file{ImGuiFileDialog::Instance()->GetFilePathName()};
 
-                    Cell& cell = m_field.at(m_selectedBot.x, m_selectedBot.y);
+                    Cell& cell = m_field->at(m_selectedBot.x, m_selectedBot.y);
                     file << cell.getBot() << std::endl;
                 }
             }
@@ -447,35 +445,38 @@ void FieldView::showGui() noexcept {
     }
 
     with_Window("Statistics") {
-        ImGui::Text("Epoch: %i", m_field.getEpoch());
+        ImGui::Text("Epoch: %i", m_field->getEpoch());
 
         ImGui::Text("Population: %i", m_populationHistory.back());
         ImGui::PlotLines("##Population", containerGetter<std::deque<int>>, &m_populationHistory, 
                          POPULATION_HISTORY_SIZE, 0, NULL, 
-                         0.f, m_field.getWidth() * m_field.getHeight(), ImVec2(0, 80.0f));
+                         0.f, m_field->getWidth() * m_field->getHeight(), ImVec2(0, 80.0f));
     }
 
     with_Window("Life cycle") {
-        int lifetime = m_field.getLifetime();
+        int lifetime = m_field->getLifetime();
         if (ImGui::SliderInt("Lifetime", &lifetime, 0, 1024)) {
-            m_field.setLifetime(lifetime);
+            m_field->setLifetime(lifetime);
         }
 
-        float mutationChance = m_field.getMutationChance();
+        float mutationChance = m_field->getMutationChance();
         if (ImGui::SliderFloat("Mutation chance", &mutationChance, 0, 1, 
                                "%.3f", ImGuiSliderFlags_Logarithmic)) {
-            m_field.setMutationChance(mutationChance);
+            m_field->setMutationChance(mutationChance);
         }
     }
 
     with_Window("Field") {
         ImGui::Text("Topology");
-        int topology = static_cast<int>(m_field.getTopology());
-        if (ImGui::Combo("##Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
+        int topology = static_cast<int>(m_field->getTopology());
+        if (m_field->getWidth() == m_field->getHeight()) {
+            ImGui::Combo("##Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
                                                   "Sphere left\0Sphere right\0Cone left top\0"
                                                   "Cone right top\0Cone left bottom\0"
-                                                  "Cone right bottom\0")) {
-            m_field.setTopology(static_cast<Field::Topology>(topology));
+                                                  "Cone right bottom\0");
+        } else {
+            ImGui::Combo("##Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
         }
+        m_field->setTopology(static_cast<Field::Topology>(topology));
     }
 }
