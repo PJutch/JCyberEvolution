@@ -60,6 +60,7 @@ using std::unique_ptr;
 
 #include <algorithm>
 using std::max;
+using std::min;
 
 #include <cmath>
 using std::pow;
@@ -71,7 +72,7 @@ const int POPULATION_HISTORY_SIZE = 128;
 FieldView::FieldView(Vector2f screenSize, uint64_t seed) : 
         m_field{nullptr}, m_fieldWidth{128}, m_fieldHeight{128}, m_fieldTopology{Field::Topology::TORUS},
         m_randomEngine{seed}, m_cellsVertices{Triangles}, m_botsVertices{Triangles}, m_view{},
-        m_zoom{1.0f}, m_shouldDrawBots{true}, 
+        m_screenSize{screenSize}, m_zoom{1.0f}, m_shouldDrawBots{true}, 
         m_fillDensity{0.5f}, m_simulationSpeed{1.f}, m_simulationStepRest{0.f}, m_paused{false}, 
         m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
         m_recentFiles{}, m_selectedFile{-1}, m_loadedBot{nullptr}, 
@@ -184,11 +185,24 @@ void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
         for (int y = 0; y < m_field->getHeight(); ++ y) {
             int offset = y * m_field->getWidth() * 6 + x * 6;
             for (int i = 0; i < 6; ++ i) {
-                m_cellsVertices[offset + i].color = m_field->at(x, y).getColor();
-                if (m_field->at(x, y).hasBot()) {
-                    m_botsVertices[offset + i].color = m_field->at(x, y).getBot().getColor();
+                if (0.3f * getScreenToViewRatio() >= 1.f) {
+                    m_cellsVertices[offset + i].color = m_field->at(x, y).getColor();
+                    if (m_field->at(x, y).hasBot()) {
+                        m_botsVertices[offset + i].color = m_field->at(x, y).getBot().getColor();
+                    } else {
+                        m_botsVertices[offset + i].color = Color::Transparent;
+                    }
                 } else {
-                    m_botsVertices[offset + i].color = Color::Transparent;
+                    if (m_field->at(x, y).hasBot()) {
+                        if (m_selectedBot == Vector2i{x, y}) {
+                            m_cellsVertices[offset + i].color = Color::Red;
+                        } else {
+                            m_cellsVertices[offset + i].color 
+                                = m_field->at(x, y).getBot().getColor();
+                        }
+                    } else {
+                        m_cellsVertices[offset + i].color =m_field->at(x, y).getColor();
+                    }
                 }
             }
     }
@@ -196,12 +210,15 @@ void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
 
 void FieldView::drawField(RenderTarget& target, RenderStates states) const noexcept {
     target.draw(m_cellsVertices, states);
-    target.draw(m_botsVertices, states);
+    if (0.3f * getScreenToViewRatio() >= 1.f) {
+        target.draw(m_botsVertices, states);
 
-    for (Cell& cell : *m_field) if (cell.hasBot()) cell.getBot().drawDirection(target, states);
+        for (Cell& cell : *m_field) 
+            if (cell.hasBot()) cell.getBot().drawDirection(target, states);
 
-    if (m_selectedBot != Vector2i(-1, -1)) 
-        target.draw(m_selectionShape, states);
+        if (m_selectedBot != Vector2i(-1, -1)) 
+            target.draw(m_selectionShape, states);
+    }
 }
 
 void FieldView::drawCone(RenderTarget& target, RenderStates states, Vector2f apex) const noexcept {

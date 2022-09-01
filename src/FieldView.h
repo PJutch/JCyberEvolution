@@ -97,6 +97,7 @@ private:
 
     sf::View m_view;
 
+    sf::Vector2f m_screenSize;
     float m_zoom;
 
     bool m_shouldDrawBots;
@@ -121,6 +122,7 @@ private:
     float m_speedModificator;
 
     void resize(float width, float height) noexcept {
+        m_screenSize = {width, height};
         if (width > height)  {
             m_view.setViewport({0.f, 0.f, height / width, 1.f});
         } else {
@@ -164,6 +166,17 @@ private:
     void showSaveBotGui() noexcept;
     void showTopologyCombo() noexcept;
     void showNewFieldTopologyCombo() noexcept;
+
+    float getScreenToViewRatio() const noexcept {
+        float screenToViewRatio;
+        if (m_screenSize.x * m_view.getViewport().width 
+            > m_screenSize.y * m_view.getViewport().height) {
+                screenToViewRatio = m_screenSize.x * m_view.getViewport().width / m_view.getSize().y;
+        } else {
+            screenToViewRatio = m_screenSize.y * m_view.getViewport().height / m_view.getSize().y;
+        }
+        return screenToViewRatio;
+    }
 };
 
 #endif
