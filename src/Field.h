@@ -23,7 +23,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 class FieldView;
 
-class Field : public sf::Transformable {
+class Field {
 public:
     enum class Topology {
         TORUS = 0,
@@ -53,7 +53,7 @@ public:
     }
 
     sf::FloatRect getRect() const noexcept {
-        return sf::FloatRect(getPosition().x, getPosition().y, m_width, m_height);
+        return sf::FloatRect(0.f, 0.f, m_width, m_height);
     }
 
     bool makeIndicesSafe(int& x, int& y, int* rotation = nullptr) const noexcept;

@@ -16,6 +16,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 #include <SFML/Graphics.hpp>
 using sf::Vector2f;
+using sf::Vector2i;
 using sf::Color;
 using sf::RenderTarget;
 using sf::RenderStates;
@@ -26,14 +27,14 @@ using std::make_shared;
 
 #include <cassert>
 
-Bot::Bot() noexcept : Bot({0.f, 0.f}, 0, nullptr) {}
+Bot::Bot() noexcept : Bot({0, 0}, 0, nullptr) {}
 
-Bot::Bot(Vector2f position, int rotation, shared_ptr<Species> species) noexcept : 
+Bot::Bot(Vector2i position, int rotation, shared_ptr<Species> species) noexcept : 
         m_instructionPointer{0}, m_age{0}, m_directionShape{{0.1f, 0.3f}} {
     setSpecies(species);
 
     m_directionShape.setOrigin(0.05f, 0.05f);
-    m_directionShape.setPosition(position + Vector2f(0.5f, 0.5f));
+    m_directionShape.setPosition(position.x + 0.5f, position.y + 0.5f);
     setRotation(rotation);
 }
 

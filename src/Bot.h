@@ -25,11 +25,11 @@ If not, see <https://www.gnu.org/licenses/>. */
 class Bot {
 public:
     Bot() noexcept;
-    Bot(sf::Vector2f position, int rotation, std::shared_ptr<Species> species) noexcept;
+    Bot(sf::Vector2i position, int rotation, std::shared_ptr<Species> species) noexcept;
 
     static Bot createRandom(std::mt19937_64& randomEngine) noexcept {
         int rotation = std::uniform_int_distribution(0, 7)(randomEngine);
-        return Bot{{0.f, 0.f}, rotation, Species::createRandom(randomEngine)};
+        return Bot{{0, 0}, rotation, Species::createRandom(randomEngine)};
     }
 
     sf::Color getColor() const noexcept {
