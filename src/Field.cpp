@@ -394,16 +394,6 @@ int Field::computePopulation() const noexcept {
     return population;
 }
 
-void Field::draw(RenderTarget& target, RenderStates states) const noexcept {
-    states.transform *= getTransform();
-
-    for (int y = 0; y < m_height; ++ y)
-        for (int x = 0; x < m_width; ++ x) {
-            target.draw(at(x, y), states);
-    }
-    if (m_topology == Field::Topology::PLANE) target.draw(m_borderShape, states);
-}
-
 void Field::randomFill(float density) noexcept {
     clear();
 

@@ -22,7 +22,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 #include <memory>
 
-class Bot : public sf::Drawable {
+class Bot {
 public:
     Bot() noexcept;
     Bot(sf::Vector2f position, int rotation, std::shared_ptr<Species> species) noexcept;
@@ -32,8 +32,8 @@ public:
         return Bot{{0.f, 0.f}, rotation, Species::createRandom(randomEngine)};
     }
 
-    sf::Vector2f getSize() const noexcept {
-        return m_shape.getSize();
+    sf::Color getColor() const noexcept {
+        return m_species->getColor();
     }
 
     int getRotation() const noexcept {
@@ -49,24 +49,14 @@ public:
         return m_species;
     }
 
-    void setPosition(sf::Vector2f position) noexcept {
-        m_shape.setPosition(position);
-        m_directionShape.setPosition(position + sf::Vector2f(0.5f, 0.5f));
+    void setPosition(sf::Vector2i position) noexcept {
+        m_directionShape.setPosition(position.x + 0.5f, position.y + 0.5f);
     }
 
     Decision makeDecision(int lifetime) noexcept;
 
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override {
-        target.draw(m_shape, states);
-        if (m_shouldDrawDirection) target.draw(m_directionShape, states);
-    }
-
-    void setShouldDrawOutline(bool shouldDrawOutline) noexcept {
-        m_shape.setOutlineThickness(shouldDrawOutline ? -0.07f : 0.f);
-    }
-
-    void setShouldDrawDirection(bool shouldDrawOutline) noexcept {
-        m_shouldDrawDirection = shouldDrawOutline;
+    void drawDirection(sf::RenderTarget& target, sf::RenderStates states) const noexcept {
+        target.draw(m_directionShape, states);
     }
 
     inline friend std::ostream& operator<< (std::ostream& os, const Bot& bot) noexcept {
@@ -90,19 +80,10 @@ private:
     
     int m_rotation;
 
-    sf::RectangleShape m_shape;
     sf::RectangleShape m_directionShape;
-
-    bool m_shouldDrawDirection;
 
     void setSpecies(std::shared_ptr<Species> species) noexcept {
         m_species = species;
-        if (!m_species) return;
-
-        sf::Color outlineColor = getOutlineColorFor(m_species->getColor());
-        m_shape.setOutlineColor(outlineColor);
-        m_shape.setFillColor(species->getColor());
-        m_directionShape.setFillColor(outlineColor);
     }
 };
 

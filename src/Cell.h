@@ -21,13 +21,13 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <memory>
 #include <utility>
 
-class Cell : public sf::Drawable {
+class Cell {
 public:
     Cell() noexcept = default;
     Cell(sf::Vector2f position, sf::Color color) noexcept;
 
     sf::Color getColor() const noexcept {
-        return m_shape.getFillColor();
+        return m_color;
     }
 
     bool hasBot() const noexcept {
@@ -41,7 +41,7 @@ public:
 
     void setBot(std::unique_ptr<Bot>&& bot) noexcept {
         m_bot = std::move(bot);
-        m_bot->setPosition(m_shape.getPosition());
+        m_bot->setPosition(m_position);
     }
 
     void deleteBot() noexcept {
@@ -50,7 +50,7 @@ public:
 
     template<typename... Args>
     void createBot(Args&&... args) noexcept {
-        m_bot = std::make_unique<Bot>(m_shape.getPosition(), std::forward<Args>(args)...);
+        m_bot = std::make_unique<Bot>(m_position, std::forward<Args>(args)...);
     }
 
     bool shouldDie() {
@@ -73,38 +73,12 @@ public:
     bool isAlive() const noexcept {
         return hasBot() && !m_shouldDie;
     }
-
-    void setShouldDrawOutline(bool shouldDrawOutline) noexcept {
-        m_shape.setOutlineThickness(shouldDrawOutline ? -0.05f : 0.f);
-    }
-
-    void setShouldDrawBotOutline(bool shouldDrawOutline) noexcept {
-        if (m_bot) m_bot->setShouldDrawOutline(shouldDrawOutline);
-    }
-
-    void setShouldDrawBotDirection(bool shouldBotDirection) noexcept {
-        if (m_bot) m_bot->setShouldDrawDirection(shouldBotDirection);
-    }
-
-    // work only if bot is visible
-    void setShouldDrawBackground(bool shouldDrawBackground) noexcept {
-        m_shouldDrawBackground = shouldDrawBackground;
-    }
-
-    void setShouldDrawBot(bool shouldDrawBot) noexcept {
-        m_shouldDrawBot = shouldDrawBot;
-    }
-
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
 private:
     std::unique_ptr<Bot> m_bot;
     bool m_shouldDie;
 
-    sf::RectangleShape m_shape;
-    bool m_shouldDrawBackground;
-    bool m_shouldDrawBot;
-
-    void setColor(sf::Color color) noexcept;
+    sf::Vector2i m_position;
+    sf::Color m_color;
 };
 
 #endif

@@ -23,7 +23,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 class FieldView;
 
-class Field : public sf::Transformable, public sf::Drawable {
+class Field : public sf::Transformable {
 public:
     enum class Topology {
         TORUS = 0,
@@ -141,8 +141,6 @@ public:
     void clear() noexcept;
 
     void update() noexcept;
-
-    void draw(sf::RenderTarget& target, sf::RenderStates states) const noexcept override;
 
     void setView(FieldView* view) noexcept {
         m_view = view;

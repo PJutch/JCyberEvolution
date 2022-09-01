@@ -86,10 +86,14 @@ public:
     }
 private:
     std::unique_ptr<Field> m_field;
+
     int m_fieldWidth;
     int m_fieldHeight;
     Field::Topology m_fieldTopology;
     std::mt19937_64 m_randomEngine;
+
+    sf::VertexArray m_cellsVertices;
+    sf::VertexArray m_botsVertices;
 
     sf::View m_view;
 

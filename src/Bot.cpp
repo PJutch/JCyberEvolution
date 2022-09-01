@@ -29,13 +29,8 @@ using std::make_shared;
 Bot::Bot() noexcept : Bot({0.f, 0.f}, 0, nullptr) {}
 
 Bot::Bot(Vector2f position, int rotation, shared_ptr<Species> species) noexcept : 
-        m_instructionPointer{0}, m_age{0},
-        m_shape{{0.8f, 0.8f}}, m_directionShape{{0.1f, 0.3f}}, m_shouldDrawDirection{true} {
+        m_instructionPointer{0}, m_age{0}, m_directionShape{{0.1f, 0.3f}} {
     setSpecies(species);
-
-    m_shape.setOrigin(-0.1f, -0.1f);
-    m_shape.setPosition(position);   
-    m_shape.setOutlineThickness(0);
 
     m_directionShape.setOrigin(0.05f, 0.05f);
     m_directionShape.setPosition(position + Vector2f(0.5f, 0.5f));

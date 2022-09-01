@@ -25,33 +25,4 @@ using sf::FloatRect;
 
 Cell::Cell(Vector2f position, Color color) noexcept : 
         m_bot{nullptr}, m_shouldDie{false}, 
-        m_shape{{1, 1}}, m_shouldDrawBackground{true}, m_shouldDrawBot{true} {
-    m_shape.setPosition(position);
-    m_shape.setFillColor(color);
-    m_shape.setOutlineColor(getOutlineColorFor(color));
-}
-
-void Cell::draw(RenderTarget& target, RenderStates states) const noexcept {
-    FloatRect viewRect;
-    viewRect.width = target.getView().getSize().x;
-    viewRect.height = target.getView().getSize().y;
-    viewRect.left = target.getView().getCenter().x - viewRect.width / 2;
-    viewRect.top = target.getView().getCenter().y - viewRect.height / 2;
-
-    FloatRect rect = states.transform.transformRect(m_shape.getGlobalBounds());
-    if (!viewRect.intersects(rect)) return;
-
-    if (m_bot && m_shouldDrawBot) {
-        if (m_shouldDrawBackground) {
-            target.draw(m_shape, states);
-            target.draw(*m_bot, states);
-        } else {
-            Vector2f center = m_shape.getPosition() + m_shape.getSize() / 2.f;
-            states.transform.scale(m_shape.getSize().x / m_bot->getSize().x, 
-                                   m_shape.getSize().y / m_bot->getSize().y, center.x, center.y);
-            target.draw(*m_bot, states);
-        }
-    } else {
-        target.draw(m_shape, states);
-    }
-}
+        m_position{position}, m_color{color} {}

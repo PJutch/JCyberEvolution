@@ -30,6 +30,7 @@ using sf::RenderStates;
 using sf::RectangleShape;
 using sf::View;
 using sf::Transform;
+using sf::Triangles;
 
 #include <SFML/System.hpp>
 using sf::Keyboard;
@@ -69,7 +70,7 @@ const int POPULATION_HISTORY_SIZE = 128;
 
 FieldView::FieldView(Vector2f screenSize, uint64_t seed) : 
         m_field{nullptr}, m_fieldWidth{128}, m_fieldHeight{128}, m_fieldTopology{Field::Topology::TORUS},
-         m_randomEngine{seed}, m_view{},
+        m_randomEngine{seed}, m_cellsVertices{Triangles}, m_botsVertices{Triangles}, m_view{},
         m_zoom{1.0f}, m_shouldDrawBots{true}, 
         m_fillDensity{0.5f}, m_simulationSpeed{1.f}, m_simulationStepRest{0.f}, m_paused{false}, 
         m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
@@ -178,10 +179,26 @@ void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
         if (Keyboard::isKeyPressed(Keyboard::D))
             m_view.setCenter(m_view.getCenter().x + moved, m_view.getCenter().y); 
     }
+
+    for (int x = 0; x < m_field->getWidth(); ++ x)
+        for (int y = 0; y < m_field->getHeight(); ++ y) {
+            int offset = y * m_field->getWidth() * 6 + x * 6;
+            for (int i = 0; i < 6; ++ i) {
+                m_cellsVertices[offset + i].color = m_field->at(x, y).getColor();
+                if (m_field->at(x, y).hasBot()) {
+                    m_botsVertices[offset + i].color = m_field->at(x, y).getBot().getColor();
+                } else {
+                    m_botsVertices[offset + i].color = Color::Transparent;
+                }
+            }
+    }
 }
 
 void FieldView::drawField(RenderTarget& target, RenderStates states) const noexcept {
-    target.draw(*m_field, states);
+    target.draw(m_cellsVertices, states);
+    target.draw(m_botsVertices, states);
+
+    for (Cell& cell : *m_field) if (cell.hasBot()) cell.getBot().drawDirection(target, states);
 
     states.transform *= m_field->getTransform();
     if (m_selectedBot != Vector2i(-1, -1)) 
@@ -458,9 +475,6 @@ void FieldView::showNewFieldTopologyCombo() noexcept {
 void FieldView::showGui() noexcept {
     if (m_field) {
         with_Window("View") {
-            if (ImGui::Checkbox("Show bots", &m_shouldDrawBots)) {
-                for (Cell& cell : *m_field) cell.setShouldDrawBot(m_shouldDrawBots);
-            }
             if (ImGui::Button("To center")) {
                 m_view.setCenter(m_field->getPosition() + m_field->getSize() / 2.f);
             }
@@ -524,6 +538,27 @@ void FieldView::showGui() noexcept {
             if (ImGui::Button("Create")) {
                 setField(make_unique<Field>(m_fieldWidth, m_fieldHeight, m_randomEngine()));
                 m_field->setTopology(m_fieldTopology);
+
+                m_cellsVertices.resize(m_field->getWidth() * m_field->getHeight() * 6);
+                m_botsVertices.resize(m_field->getWidth() * m_field->getHeight() * 6);
+                for (int x = 0; x < m_field->getWidth(); ++ x)
+                    for (int y = 0; y < m_field->getHeight(); ++ y) {
+                        int offset = y * m_field->getWidth() * 6 + x * 6;
+
+                        m_cellsVertices[offset].position = Vector2f(x, y);
+                        m_cellsVertices[offset + 1].position = Vector2f(x + 1, y);
+                        m_cellsVertices[offset + 2].position = Vector2f(x, y + 1);
+                        m_cellsVertices[offset + 3].position = Vector2f(x + 1, y + 1);
+                        m_cellsVertices[offset + 4].position = Vector2f(x + 1, y);
+                        m_cellsVertices[offset + 5].position = Vector2f(x, y + 1);
+
+                        m_botsVertices[offset].position = Vector2f(x + 0.1f, y + 0.1f);
+                        m_botsVertices[offset + 1].position = Vector2f(x + 0.9f, y + 0.1f);
+                        m_botsVertices[offset + 2].position = Vector2f(x + 0.1f, y + 0.9f);
+                        m_botsVertices[offset + 3].position = Vector2f(x + 0.9f, y + 0.9f);
+                        m_botsVertices[offset + 4].position = Vector2f(x + 0.9f, y + 0.1f);
+                        m_botsVertices[offset + 5].position = Vector2f(x + 0.1f, y + 0.9f);
+                }
             }
         }
         return;
