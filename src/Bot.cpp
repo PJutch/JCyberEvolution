@@ -21,9 +21,13 @@ using sf::Color;
 using sf::RenderTarget;
 using sf::RenderStates;
 
+#include <random>
+using std::mt19937_64;
+
 #include <memory>
 using std::shared_ptr;
 using std::make_shared;
+using std::uniform_int_distribution;
 
 #include <cassert>
 
@@ -38,7 +42,19 @@ Bot::Bot(Vector2i position, int rotation, shared_ptr<Species> species) noexcept 
     setRotation(rotation);
 }
 
-Decision Bot::makeDecision(int lifetime) noexcept {
+int Bot::decodeRotation(uint16_t code, mt19937_64& randomEngine) const noexcept {
+    if (code & (1 << 5)) {
+        return getRotation() + code % 8;
+    } else {
+        if (code & (1 << 4)) {
+            return code % 8;
+        } else {
+            return uniform_int_distribution(0, 7)(randomEngine);
+        }
+    }
+}
+
+Decision Bot::makeDecision(int lifetime, mt19937_64& randomEngine) noexcept {
     if (++ m_age > lifetime) return {3};
 
     Decision decision{0}; // skip
@@ -48,43 +64,41 @@ Decision Bot::makeDecision(int lifetime) noexcept {
     while (run && executedCommands < 10) {
         switch (((*m_species)[m_instructionPointer]) % 16) {
         case 1: // move
-            decision = {1};
+            decision = {1, 
+                decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
-            ++ m_instructionPointer;
+            m_instructionPointer += 2;
             break;
-        case 2: { // rotate right
+        case 2: { // rotate
             int newRotation = m_rotation + 1;
-            setRotation(newRotation == 8 ? 0 : newRotation);
-            ++ m_instructionPointer;
-            break;
-        }
-        case 3: { // rotate left
-            int newRotation = m_rotation - 1;
-            setRotation(newRotation == -1 ? 7 : newRotation);
-            ++ m_instructionPointer;
+            setRotation(decodeRotation((*m_species)[(m_instructionPointer + 1) % 16], 
+                                       randomEngine));
+            m_instructionPointer += 2;
             break;
         }
         case 4: // jump to start
             m_instructionPointer = 0;
         case 5: // skip
-            decision = {0};
+            decision = {0, -1};
             run = false;
             ++ m_instructionPointer;
             break;
         case 6: // die
-            decision = {3};
+            decision = {3, -1};
             run = false;
             ++ m_instructionPointer;
             break;
         case 7: // multiply
-            decision = {2};
+            decision = {2, 
+                decodeRotation((*m_species)[(m_instructionPointer + 1) % 16], randomEngine)};
             run = false;
-            ++ m_instructionPointer;
+            m_instructionPointer += 2;
             break;
         case 8: // attack
-            decision = {4};
+            decision = {4, 
+                decodeRotation((*m_species)[(m_instructionPointer + 1) % 16], randomEngine)};
             run = false;
-            ++ m_instructionPointer;
+            m_instructionPointer += 2;
             break;
         default: 
             ++ m_instructionPointer;

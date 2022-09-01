@@ -18,7 +18,8 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <cstdint>
 
 struct Decision {
-    int16_t instruction;
+    uint16_t instruction;
+    int direction;
 };
 
 #endif

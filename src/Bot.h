@@ -20,6 +20,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 #include <SFML/Graphics.hpp>
 
+#include <random>
 #include <memory>
 
 class Bot {
@@ -53,7 +54,7 @@ public:
         m_directionShape.setPosition(position.x + 0.5f, position.y + 0.5f);
     }
 
-    Decision makeDecision(int lifetime) noexcept;
+    Decision makeDecision(int lifetime, std::mt19937_64& randomEngine) noexcept;
 
     void drawDirection(sf::RenderTarget& target, sf::RenderStates states) const noexcept {
         target.draw(m_directionShape, states);
@@ -85,6 +86,8 @@ private:
     void setSpecies(std::shared_ptr<Species> species) noexcept {
         m_species = species;
     }
+
+    int decodeRotation(uint16_t code, std::mt19937_64& randomEngine) const noexcept;
 };
 
 #endif

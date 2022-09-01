@@ -317,9 +317,9 @@ void Field::update() noexcept {
     decisions.reserve(m_width * m_height);
     for (Cell& cell : m_cells) {
         if (cell.hasBot()) {
-            decisions.push_back(cell.getBot().makeDecision(m_lifetime));
+            decisions.push_back(cell.getBot().makeDecision(m_lifetime, m_randomEngine));
         } else {
-            decisions.emplace_back(0);
+            decisions.emplace_back(0, -1);
         }
     }
 
@@ -337,12 +337,9 @@ void Field::update() noexcept {
 
                 Decision decision = decisions[index];
                 Cell& cell = m_cells[index];
-                if (!cell.hasBot()) continue;
+                if (!cell.hasBot() || !areOpposite(decision.direction, currentRotation)) continue;
 
                 Bot& bot = cell.getBot();
-                // Skip if not rotated to current cell
-                if (!areOpposite(bot.getRotation(), currentRotation)) continue;
-
                 switch (decision.instruction) {
                 case 1:
                     if (!at(x, y).hasBot()) {
@@ -360,7 +357,7 @@ void Field::update() noexcept {
                         shared_ptr<Species> offspring = parent->createMutant(
                             m_randomEngine, m_epoch, m_mutationChance);
 
-                        at(x, y).createBot((bot.getRotation() + rotationDelta) % 8, offspring);
+                        at(x, y).createBot((decision.direction + rotationDelta) % 8, offspring);
                     }
                     break;
                 case 4:
