@@ -88,6 +88,7 @@ private:
     }
 
     int decodeRotation(uint16_t code, std::mt19937_64& randomEngine) const noexcept;
+    int decodeAddress(uint16_t code, std::mt19937_64& randomEngine) const noexcept;
 };
 
 #endif

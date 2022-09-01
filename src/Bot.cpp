@@ -54,6 +54,18 @@ int Bot::decodeRotation(uint16_t code, mt19937_64& randomEngine) const noexcept 
     }
 }
 
+int Bot::decodeAddress(uint16_t code, mt19937_64& randomEngine) const noexcept {
+    if (code & (1 << 10)) {
+        return m_instructionPointer + code % 256;
+    } else {
+        if (code & (1 << 9)) {
+            return code % 256;
+        } else {
+            return uniform_int_distribution(0, 255)(randomEngine);
+        }
+    }
+}
+
 Decision Bot::makeDecision(int lifetime, mt19937_64& randomEngine) noexcept {
     if (++ m_age > lifetime) return {3};
 
@@ -76,8 +88,10 @@ Decision Bot::makeDecision(int lifetime, mt19937_64& randomEngine) noexcept {
             m_instructionPointer += 2;
             break;
         }
-        case 4: // jump to start
-            m_instructionPointer = 0;
+        case 3: // jump
+            m_instructionPointer 
+                = decodeAddress((*m_species)[(m_instructionPointer + 1) % 16], randomEngine);
+            break;
         case 5: // skip
             decision = {0, -1};
             run = false;
