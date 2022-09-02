@@ -15,6 +15,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include "Cell.h"
 #include "Field.h"
 #include "utility.h"
+#include "Decision.h"
 
 #include <SFML/Graphics.hpp>
 using sf::Vector2f;
@@ -89,60 +90,60 @@ bool Bot::decodeCoords(uint16_t code, int& x, int& y,
 }
 
 Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomEngine) noexcept {
-    if (++ m_age > lifetime) return {3, -1};
+    if (++ m_age > lifetime) return {Decision::Command::DIE, -1};
 
-    Decision decision{0, -1}; // skip
+    Decision decision{Decision::Command::SKIP, -1};
 
     bool run = true;
     int eatTimes = 0;
     while (run && m_energy > 0 && eatTimes < 10) {
-        switch (((*m_species)[m_instructionPointer]) % 16) {
-        case 1: // move
-            decision = {1, 
+        switch (static_cast<Bot::Instruction>(((*m_species)[m_instructionPointer]) % 16)) {
+        case Instruction::MOVE:
+            decision = {Decision::Command::MOVE, 
                 decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
             m_instructionPointer += 2;
             break;
-        case 2: { // rotate
+        case Instruction::ROTATE: {
             int newRotation = m_rotation + 1;
             setRotation(decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], 
                                        randomEngine));
             m_instructionPointer += 2;
             break;
         }
-        case 3: // jump
+        case Instruction::JMP:
             m_instructionPointer 
                 = decodeAddress((*m_species)[(m_instructionPointer + 1) % 256], randomEngine);
             break;
-        case 4: // eat
+        case Instruction::EAT:
             m_energy += 10.f;
             ++ eatTimes;
             ++ m_instructionPointer;
             break;
-        case 5: // skip
-            decision = {0, -1};
+        case Instruction::SKIP:
+            decision = {Decision::Command::SKIP, -1};
             run = false;
             ++ m_instructionPointer;
             break;
-        case 6: // die
-            decision = {3, -1};
+        case Instruction::DIE:
+            decision = {Decision::Command::DIE, -1};
             run = false;
             ++ m_instructionPointer;
             break;
-        case 7: // multiply
-            decision = {2, 
+        case Instruction::MULTIPLY:
+            decision = {Decision::Command::MULTIPLY, 
                 decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
             m_energy -= 20.0;
             m_instructionPointer += 2;
             break;
-        case 8: // attack
-            decision = {4, 
+        case Instruction::ATTACK:
+            decision = {Decision::Command::ATTACK, 
                 decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
             m_instructionPointer += 2;
             break;
-        case 9: { // test empty
+        case Instruction::TEST_EMPTY: {
             int x, y;
             if (decodeCoords((*m_species)[(m_instructionPointer + 3) % 256], 
                              x, y, field, randomEngine)) {
@@ -151,7 +152,7 @@ Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomE
                 executeTest(false, randomEngine);
             }
         }
-        case 10: { // test enemy
+        case Instruction::TEST_ENEMY: {
             int x, y;
             if (decodeCoords((*m_species)[(m_instructionPointer + 3) % 256], 
                              x, y, field, randomEngine)) {
@@ -162,7 +163,7 @@ Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomE
                 executeTest(false, randomEngine);
             }
         }
-        case 11: { // test ally
+        case Instruction::TEST_ALLY: {
             int x, y;
             if (decodeCoords((*m_species)[(m_instructionPointer + 3) % 256], 
                              x, y, field, randomEngine)) {
@@ -184,7 +185,7 @@ Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomE
         if (m_instructionPointer < 0) m_instructionPointer += 256;
     }
 
-    if (m_energy <= 0) return {3, -1};
+    if (m_energy <= 0) return {Decision::Command::DIE, -1};
 
     return decision;
 }

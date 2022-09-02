@@ -359,8 +359,8 @@ void Field::update() noexcept {
                 if (!cell.hasBot() || !areOpposite(decision.direction, currentRotation)) continue;
 
                 Bot& bot = cell.getBot();
-                switch (decision.instruction) {
-                case 1:
+                switch (decision.command) {
+                case Decision::Command::MOVE:
                     if (!at(x, y).hasBot()) {
                         at(x, y).setBot(make_unique<Bot>(bot));
                         int botRotation = at(x, y).getBot().getRotation();
@@ -370,7 +370,7 @@ void Field::update() noexcept {
                         cell.setShouldDie(true);
                     }
                     break;
-                case 2:
+                case Decision::Command::MULTIPLY:
                     if (!at(x, y).hasBot()) {
                         shared_ptr<Species> parent = bot.getSpecies();
                         shared_ptr<Species> offspring = parent->createMutant(
@@ -379,7 +379,7 @@ void Field::update() noexcept {
                         at(x, y).createBot((decision.direction + rotationDelta) % 8, 10.0, offspring);
                     }
                     break;
-                case 4:
+                case Decision::Command::ATTACK:
                     if (at(x, y).isAlive()) {
                         bot.setEnergy(bot.getEnergy() + 0.5 * at(x, y).getBot().getEnergy());
                         at(x, y).setShouldDie(true);
@@ -388,7 +388,7 @@ void Field::update() noexcept {
                 }
             }
 
-            if (decisions[y * m_width + x].instruction == 3 && at(x, y).isAlive()) {
+            if (decisions[y * m_width + x].command == Decision::Command::DIE && at(x, y).isAlive()) {
                 at(x, y).setShouldDie(true);
             }
     }

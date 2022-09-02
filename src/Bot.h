@@ -27,6 +27,20 @@ class Field;
 
 class Bot {
 public:
+    enum class Instruction {
+        MOVE = 1,
+        ROTATE,
+        JMP,
+        EAT,
+        SKIP,
+        DIE,
+        MULTIPLY,
+        ATTACK,
+        TEST_EMPTY,
+        TEST_ENEMY,
+        TEST_ALLY
+    };
+
     Bot() noexcept;
     Bot(sf::Vector2i position, int rotation, double energy, std::shared_ptr<Species> species) noexcept;
 

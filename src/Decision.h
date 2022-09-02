@@ -18,7 +18,15 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <cstdint>
 
 struct Decision {
-    uint16_t instruction;
+    enum class Command {
+        SKIP = 0,
+        MOVE,
+        MULTIPLY,
+        DIE,
+        ATTACK
+    };
+
+    Command command;
     int direction;
 };
 
