@@ -33,10 +33,11 @@ using std::uniform_int_distribution;
 
 #include <cassert>
 
-Bot::Bot() noexcept : Bot({0, 0}, 0, nullptr) {}
+Bot::Bot() noexcept : Bot({0, 0}, 0, 0.0, nullptr) {}
 
-Bot::Bot(Vector2i position, int rotation, shared_ptr<Species> species) noexcept : 
-        m_instructionPointer{0}, m_age{0}, m_position{position}, m_directionShape{{0.1f, 0.3f}} {
+Bot::Bot(Vector2i position, int rotation, double energy, shared_ptr<Species> species) noexcept : 
+        m_instructionPointer{0}, m_age{0}, m_energy{energy},  
+        m_position{position}, m_directionShape{{0.1f, 0.3f}} {
     setSpecies(species);
 
     m_directionShape.setOrigin(0.05f, 0.05f);
@@ -88,13 +89,13 @@ bool Bot::decodeCoords(uint16_t code, int& x, int& y,
 }
 
 Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomEngine) noexcept {
-    if (++ m_age > lifetime) return {3};
+    if (++ m_age > lifetime) return {3, -1};
 
-    Decision decision{0}; // skip
+    Decision decision{0, -1}; // skip
 
     bool run = true;
-    int executedCommands = 0;
-    while (run && executedCommands < 10) {
+    int eatTimes = 0;
+    while (run && m_energy > 0 && eatTimes < 10) {
         switch (((*m_species)[m_instructionPointer]) % 16) {
         case 1: // move
             decision = {1, 
@@ -113,6 +114,11 @@ Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomE
             m_instructionPointer 
                 = decodeAddress((*m_species)[(m_instructionPointer + 1) % 256], randomEngine);
             break;
+        case 4: // eat
+            m_energy += 10.f;
+            ++ eatTimes;
+            ++ m_instructionPointer;
+            break;
         case 5: // skip
             decision = {0, -1};
             run = false;
@@ -127,6 +133,7 @@ Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomE
             decision = {2, 
                 decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
+            m_energy -= 10.0;
             m_instructionPointer += 2;
             break;
         case 8: // attack
@@ -171,11 +178,13 @@ Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomE
             break;
         }
 
-        ++ executedCommands;
+        -- m_energy;
 
         m_instructionPointer %= 256;
         if (m_instructionPointer < 0) m_instructionPointer += 256;
     }
+
+    if (m_energy <= 0) return {3, -1};
 
     return decision;
 }

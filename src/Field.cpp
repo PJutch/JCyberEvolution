@@ -69,25 +69,26 @@ Field::Field(int width, int height, uint64_t seed) :
 
     auto species = make_shared<Species>(Color::Red);
     for (int i = 0; i < 256; ++ i) (*species)[i] = 0;
-    (*species)[0] = 2;
-    (*species)[1] = 0b10001;
-    (*species)[2] = 11;
-    (*species)[3] = 0b0100000000;
-    (*species)[4] = 0b1100000000 + 4;
-    (*species)[5] = 0b10000;
-    (*species)[6] = 9;
-    (*species)[7] = 0b1100000000 + 4;
-    (*species)[8] = 0b1100000000 + 8;
-    (*species)[9] = 0b10000;
-    (*species)[10] = 7;
-    (*species)[11] = 0b10000;
-    (*species)[12] = 3;
-    (*species)[13] = 0b0100000000;
-    (*species)[14] = 8;
-    (*species)[11] = 0b10000;
-    (*species)[12] = 3;
-    (*species)[13] = 0b0100000000;
-    at(2, 100).createBot(0, species);
+    (*species)[0] = 4;
+    (*species)[1] = 2;
+    (*species)[2] = 0b10001;
+    (*species)[3] = 11;
+    (*species)[4] = 0b0100000000;
+    (*species)[5] = 0b1100000000 + 4;
+    (*species)[6] = 0b10000;
+    (*species)[7] = 9;
+    (*species)[8] = 0b1100000000 + 4;
+    (*species)[9] = 0b1100000000 + 8;
+    (*species)[10] = 0b10000;
+    (*species)[11] = 7;
+    (*species)[12] = 0b10000;
+    (*species)[13] = 3;
+    (*species)[14] = 0b0100000000;
+    (*species)[15] = 8;
+    (*species)[16] = 0b10000;
+    (*species)[17] = 3;
+    (*species)[18] = 0b0100000000;
+    at(2, 100).createBot(0, 10.0, species);
 }
 
 bool Field::makeIndicesSafe(int& x, int& y, int* rotation) const noexcept {
@@ -375,7 +376,7 @@ void Field::update() noexcept {
                         shared_ptr<Species> offspring = parent->createMutant(
                             m_randomEngine, m_epoch, m_mutationChance);
 
-                        at(x, y).createBot((decision.direction + rotationDelta) % 8, offspring);
+                        at(x, y).createBot((decision.direction + rotationDelta) % 8, 10.0, offspring);
                     }
                     break;
                 case 4:

@@ -28,11 +28,11 @@ class Field;
 class Bot {
 public:
     Bot() noexcept;
-    Bot(sf::Vector2i position, int rotation, std::shared_ptr<Species> species) noexcept;
+    Bot(sf::Vector2i position, int rotation, double energy, std::shared_ptr<Species> species) noexcept;
 
     static Bot createRandom(std::mt19937_64& randomEngine) noexcept {
         int rotation = std::uniform_int_distribution(0, 7)(randomEngine);
-        return Bot{{0, 0}, rotation, Species::createRandom(randomEngine)};
+        return Bot{{0, 0}, rotation, 10.0, Species::createRandom(randomEngine)};
     }
 
     sf::Color getColor() const noexcept {
@@ -80,6 +80,7 @@ private:
     int m_instructionPointer;
     std::shared_ptr<Species> m_species;
     int m_age;
+    double m_energy;
     
     sf::Vector2i m_position;
     int m_rotation;
