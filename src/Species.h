@@ -46,6 +46,8 @@ public:
         return m_color;
     }
 
+    friend int computeDifference(const Species& lhs, const Species& rhs) noexcept;
+
     friend std::ostream& operator<< (std::ostream& os, const Species& species) noexcept;
     friend std::istream& operator>> (std::istream& is, Species& species) noexcept;
 private:

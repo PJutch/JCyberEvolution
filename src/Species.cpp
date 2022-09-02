@@ -99,6 +99,14 @@ shared_ptr<Species> Species::createMutant(mt19937_64& randomEngine, int epoch, d
     return result;
 }
 
+int computeDifference(const Species& lhs, const Species& rhs) noexcept {
+    int difference = 0;
+    for (int i = 0; i < ssize(lhs.m_genome); ++ i) {
+        if (lhs[i] != rhs[i]) ++ difference;
+    }
+    return difference;
+}
+
 ostream& operator<< (ostream& os, const Species& species) noexcept {
     os << 1 << ' ' << species.m_color.toInteger();
     for (uint16_t value : species.m_genome) {

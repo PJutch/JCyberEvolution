@@ -39,6 +39,11 @@ public:
         return *m_bot;
     }
 
+    // unsafe
+    const Bot& getBot() const noexcept {
+        return *m_bot;
+    }
+
     void setBot(std::unique_ptr<Bot>&& bot) noexcept {
         m_bot = std::move(bot);
         m_bot->setPosition(m_position);

@@ -185,7 +185,7 @@ void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
         for (int y = 0; y < m_field->getHeight(); ++ y) {
             int offset = y * m_field->getWidth() * 6 + x * 6;
             for (int i = 0; i < 6; ++ i) {
-                if (0.3f * getScreenToViewRatio() >= 1.f) {
+                if (0.25f * getScreenToViewRatio() >= 1.f) {
                     m_cellsVertices[offset + i].color = m_field->at(x, y).getColor();
                     if (m_field->at(x, y).hasBot()) {
                         m_botsVertices[offset + i].color = m_field->at(x, y).getBot().getColor();
@@ -210,7 +210,7 @@ void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
 
 void FieldView::drawField(RenderTarget& target, RenderStates states) const noexcept {
     target.draw(m_cellsVertices, states);
-    if (0.3f * getScreenToViewRatio() >= 1.f) {
+    if (0.25f * getScreenToViewRatio() >= 1.f) {
         target.draw(m_botsVertices, states);
 
         for (Cell& cell : *m_field) 

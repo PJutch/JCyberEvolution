@@ -12,6 +12,8 @@ You should have received a copy of the GNU General Public License along with JCy
 If not, see <https://www.gnu.org/licenses/>. */
 
 #include "Bot.h"
+#include "Cell.h"
+#include "Field.h"
 #include "utility.h"
 
 #include <SFML/Graphics.hpp>
@@ -34,7 +36,7 @@ using std::uniform_int_distribution;
 Bot::Bot() noexcept : Bot({0, 0}, 0, nullptr) {}
 
 Bot::Bot(Vector2i position, int rotation, shared_ptr<Species> species) noexcept : 
-        m_instructionPointer{0}, m_age{0}, m_directionShape{{0.1f, 0.3f}} {
+        m_instructionPointer{0}, m_age{0}, m_position{position}, m_directionShape{{0.1f, 0.3f}} {
     setSpecies(species);
 
     m_directionShape.setOrigin(0.05f, 0.05f);
@@ -44,7 +46,7 @@ Bot::Bot(Vector2i position, int rotation, shared_ptr<Species> species) noexcept 
 
 int Bot::decodeRotation(uint16_t code, mt19937_64& randomEngine) const noexcept {
     if (code & (1 << 5)) {
-        return getRotation() + code % 8;
+        return (getRotation() + code % 8) % 8;
     } else {
         if (code & (1 << 4)) {
             return code % 8;
@@ -56,7 +58,7 @@ int Bot::decodeRotation(uint16_t code, mt19937_64& randomEngine) const noexcept 
 
 int Bot::decodeAddress(uint16_t code, mt19937_64& randomEngine) const noexcept {
     if (code & (1 << 10)) {
-        return m_instructionPointer + code % 256;
+        return (m_instructionPointer + code % 256) % 256;
     } else {
         if (code & (1 << 9)) {
             return code % 256;
@@ -66,7 +68,26 @@ int Bot::decodeAddress(uint16_t code, mt19937_64& randomEngine) const noexcept {
     }
 }
 
-Decision Bot::makeDecision(int lifetime, mt19937_64& randomEngine) noexcept {
+void Bot::executeTest(bool condition, mt19937_64& randomEngine) noexcept {
+    if (condition) {
+        m_instructionPointer 
+            = decodeAddress((*m_species)[(m_instructionPointer + 1) % 256], randomEngine);
+    } else {
+        m_instructionPointer 
+            = decodeAddress((*m_species)[(m_instructionPointer + 2) % 256], randomEngine);
+    }
+}
+
+bool Bot::decodeCoords(uint16_t code, int& x, int& y, 
+                       const Field& field, mt19937_64& randomEngine) const noexcept {
+    int direction = decodeRotation((*m_species)[(m_instructionPointer + 3) % 256], randomEngine);
+    Vector2i coords = m_position + getOffsetForRotation(direction);
+    x = coords.x, y = coords.y;
+
+    return field.makeIndicesSafe(x, y);
+}
+
+Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomEngine) noexcept {
     if (++ m_age > lifetime) return {3};
 
     Decision decision{0}; // skip
@@ -83,14 +104,14 @@ Decision Bot::makeDecision(int lifetime, mt19937_64& randomEngine) noexcept {
             break;
         case 2: { // rotate
             int newRotation = m_rotation + 1;
-            setRotation(decodeRotation((*m_species)[(m_instructionPointer + 1) % 16], 
+            setRotation(decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], 
                                        randomEngine));
             m_instructionPointer += 2;
             break;
         }
         case 3: // jump
             m_instructionPointer 
-                = decodeAddress((*m_species)[(m_instructionPointer + 1) % 16], randomEngine);
+                = decodeAddress((*m_species)[(m_instructionPointer + 1) % 256], randomEngine);
             break;
         case 5: // skip
             decision = {0, -1};
@@ -104,16 +125,47 @@ Decision Bot::makeDecision(int lifetime, mt19937_64& randomEngine) noexcept {
             break;
         case 7: // multiply
             decision = {2, 
-                decodeRotation((*m_species)[(m_instructionPointer + 1) % 16], randomEngine)};
+                decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
             m_instructionPointer += 2;
             break;
         case 8: // attack
             decision = {4, 
-                decodeRotation((*m_species)[(m_instructionPointer + 1) % 16], randomEngine)};
+                decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
             m_instructionPointer += 2;
             break;
+        case 9: { // test empty
+            int x, y;
+            if (decodeCoords((*m_species)[(m_instructionPointer + 3) % 256], 
+                             x, y, field, randomEngine)) {
+                executeTest(!field.at(x, y).hasBot(), randomEngine);
+            } else {
+                executeTest(false, randomEngine);
+            }
+        }
+        case 10: { // test enemy
+            int x, y;
+            if (decodeCoords((*m_species)[(m_instructionPointer + 3) % 256], 
+                             x, y, field, randomEngine)) {
+                const Cell& cell = field.at(x, y);
+                executeTest(cell.hasBot() 
+                    && computeDifference(*m_species, *cell.getBot().getSpecies()) != 0, randomEngine);
+            } else {
+                executeTest(false, randomEngine);
+            }
+        }
+        case 11: { // test ally
+            int x, y;
+            if (decodeCoords((*m_species)[(m_instructionPointer + 3) % 256], 
+                             x, y, field, randomEngine)) {
+                const Cell& cell = field.at(x, y);
+                executeTest(field.at(x, y).hasBot()
+                    && computeDifference(*m_species, *cell.getBot().getSpecies()) == 0, randomEngine);
+            } else {
+                executeTest(false, randomEngine);
+            }
+        }
         default: 
             ++ m_instructionPointer;
             break;

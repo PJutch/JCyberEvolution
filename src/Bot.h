@@ -23,6 +23,8 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <random>
 #include <memory>
 
+class Field;
+
 class Bot {
 public:
     Bot() noexcept;
@@ -54,7 +56,7 @@ public:
         m_directionShape.setPosition(position.x + 0.5f, position.y + 0.5f);
     }
 
-    Decision makeDecision(int lifetime, std::mt19937_64& randomEngine) noexcept;
+    Decision makeDecision(int lifetime, const Field& field, std::mt19937_64& randomEngine) noexcept;
 
     void drawDirection(sf::RenderTarget& target, sf::RenderStates states) const noexcept {
         target.draw(m_directionShape, states);
@@ -79,6 +81,7 @@ private:
     std::shared_ptr<Species> m_species;
     int m_age;
     
+    sf::Vector2i m_position;
     int m_rotation;
 
     sf::RectangleShape m_directionShape;
@@ -89,6 +92,10 @@ private:
 
     int decodeRotation(uint16_t code, std::mt19937_64& randomEngine) const noexcept;
     int decodeAddress(uint16_t code, std::mt19937_64& randomEngine) const noexcept;
+    bool decodeCoords(uint16_t code, int& x, int& y, 
+                      const Field& field, std::mt19937_64& randomEngine) const noexcept;
+
+    void executeTest(bool condition, std::mt19937_64& randomEngine) noexcept;
 };
 
 #endif

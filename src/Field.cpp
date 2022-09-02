@@ -317,7 +317,7 @@ void Field::update() noexcept {
     decisions.reserve(m_width * m_height);
     for (Cell& cell : m_cells) {
         if (cell.hasBot()) {
-            decisions.push_back(cell.getBot().makeDecision(m_lifetime, m_randomEngine));
+            decisions.push_back(cell.getBot().makeDecision(m_lifetime, *this, m_randomEngine));
         } else {
             decisions.emplace_back(0, -1);
         }
