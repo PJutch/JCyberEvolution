@@ -54,8 +54,9 @@ using std::abs;
 
 Field::Field(int width, int height, uint64_t seed) : 
         m_width{width}, m_height{height}, m_topology{Topology::TORUS}, m_cells{width * height}, 
-        m_epoch{0}, m_lifetime{256}, m_mutationChance{0.001}, m_view{nullptr},
-        m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
+        m_epoch{0},  m_lifetime{256}, m_mutationChance{0.001},
+        m_energyGain{10.0}, m_multiplyCost{20.0}, m_startEnergy{10.0}, m_killGainRatio{0.5},
+        m_view{nullptr}, m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);
     m_borderShape.setOutlineColor(Color::Black);
@@ -88,7 +89,7 @@ Field::Field(int width, int height, uint64_t seed) :
     (*species)[16] = 0b10000;
     (*species)[17] = 3;
     (*species)[18] = 0b0100000000;
-    at(2, 100).createBot(0, 10.0, species);
+    at(2, 100).createBot(0, m_startEnergy, species);
 }
 
 bool Field::makeIndicesSafe(int& x, int& y, int* rotation) const noexcept {
@@ -336,9 +337,10 @@ void Field::update() noexcept {
     decisions.reserve(m_width * m_height);
     for (Cell& cell : m_cells) {
         if (cell.hasBot()) {
-            decisions.push_back(cell.getBot().makeDecision(m_lifetime, *this, m_randomEngine));
+            decisions.push_back(cell.getBot().makeDecision(
+                m_lifetime, m_energyGain, m_multiplyCost, *this, m_randomEngine));
         } else {
-            decisions.emplace_back(0, -1);
+            decisions.emplace_back(Decision::Command::SKIP, -1);
         }
     }
 
@@ -376,12 +378,14 @@ void Field::update() noexcept {
                         shared_ptr<Species> offspring = parent->createMutant(
                             m_randomEngine, m_epoch, m_mutationChance);
 
-                        at(x, y).createBot((decision.direction + rotationDelta) % 8, 10.0, offspring);
+                        at(x, y).createBot((decision.direction + rotationDelta) % 8, 
+                            m_startEnergy, offspring);
                     }
                     break;
                 case Decision::Command::ATTACK:
                     if (at(x, y).isAlive()) {
-                        bot.setEnergy(bot.getEnergy() + 0.5 * at(x, y).getBot().getEnergy());
+                        bot.setEnergy(bot.getEnergy()
+                             + m_killGainRatio * at(x, y).getBot().getEnergy());
                         at(x, y).setShouldDie(true);
                     }
                     break;

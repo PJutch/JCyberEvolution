@@ -84,6 +84,38 @@ public:
         m_mutationChance = mutationChance;
     }
 
+    double getEnergyGain() const noexcept {
+        return m_energyGain;
+    }
+
+    void setEnergyGain(double energyGain) noexcept {
+        m_energyGain = energyGain;
+    }
+
+    double getMultiplyCost() const noexcept {
+        return m_multiplyCost;
+    }
+
+    void setMultiplyCost(double multiplyCost) noexcept {
+        m_multiplyCost = multiplyCost;
+    }
+
+    double getStartEnergy() const noexcept {
+        return m_startEnergy;
+    }
+
+    void setStartEnergy(double startEnergy) noexcept {
+        m_startEnergy = startEnergy;
+    }
+
+    double getKillGainRatio() const noexcept {
+        return m_killGainRatio;
+    }
+
+    void setKillGainRatio(double killGainRatio) noexcept {
+        m_killGainRatio = killGainRatio;
+    }
+
     Topology getTopology() const noexcept {
         return m_topology;
     }
@@ -155,6 +187,10 @@ private:
 
     int m_lifetime;
     double m_mutationChance;
+    double m_energyGain;
+    double m_multiplyCost;
+    double m_startEnergy;
+    double m_killGainRatio;
 
     FieldView* m_view;
 

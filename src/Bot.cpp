@@ -89,7 +89,8 @@ bool Bot::decodeCoords(uint16_t code, int& x, int& y,
     return field.makeIndicesSafe(x, y);
 }
 
-Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomEngine) noexcept {
+Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
+                           const Field& field, mt19937_64& randomEngine) noexcept {
     if (++ m_age > lifetime) return {Decision::Command::DIE, -1};
 
     Decision decision{Decision::Command::SKIP, -1};
@@ -116,7 +117,7 @@ Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomE
                 = decodeAddress((*m_species)[(m_instructionPointer + 1) % 256], randomEngine);
             break;
         case Instruction::EAT:
-            m_energy += 10.f;
+            m_energy += energyGain;
             ++ eatTimes;
             ++ m_instructionPointer;
             break;
@@ -134,7 +135,7 @@ Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomE
             decision = {Decision::Command::MULTIPLY, 
                 decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
-            m_energy -= 20.0;
+            m_energy -= multiplyCost;
             m_instructionPointer += 2;
             break;
         case Instruction::ATTACK:

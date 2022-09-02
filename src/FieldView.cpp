@@ -484,6 +484,37 @@ void FieldView::showNewFieldTopologyCombo() noexcept {
     m_fieldTopology = static_cast<Field::Topology>(topology);
 }
 
+void FieldView::setField(std::unique_ptr<Field>&& field) noexcept {
+    m_field = std::move(field);
+
+    float side = std::max(m_field->getWidth(), m_field->getHeight());
+    m_view.setSize(side, side);
+    m_view.setCenter(m_field->getSize() / 2.f);
+
+    m_field->setView(this);
+
+    m_cellsVertices.resize(m_field->getWidth() * m_field->getHeight() * 6);
+    m_botsVertices.resize(m_field->getWidth() * m_field->getHeight() * 6);
+    for (int x = 0; x < m_field->getWidth(); ++ x)
+        for (int y = 0; y < m_field->getHeight(); ++ y) {
+            int offset = y * m_field->getWidth() * 6 + x * 6;
+
+            m_cellsVertices[offset].position = Vector2f(x, y);
+            m_cellsVertices[offset + 1].position = Vector2f(x + 1, y);
+            m_cellsVertices[offset + 2].position = Vector2f(x, y + 1);
+            m_cellsVertices[offset + 3].position = Vector2f(x + 1, y + 1);
+            m_cellsVertices[offset + 4].position = Vector2f(x + 1, y);
+            m_cellsVertices[offset + 5].position = Vector2f(x, y + 1);
+
+            m_botsVertices[offset].position = Vector2f(x + 0.1f, y + 0.1f);
+            m_botsVertices[offset + 1].position = Vector2f(x + 0.9f, y + 0.1f);
+            m_botsVertices[offset + 2].position = Vector2f(x + 0.1f, y + 0.9f);
+            m_botsVertices[offset + 3].position = Vector2f(x + 0.9f, y + 0.9f);
+            m_botsVertices[offset + 4].position = Vector2f(x + 0.9f, y + 0.1f);
+            m_botsVertices[offset + 5].position = Vector2f(x + 0.1f, y + 0.9f);
+    }
+}
+
 void FieldView::showGui() noexcept {
     if (m_field) {
         with_Window("View") {
@@ -533,8 +564,28 @@ void FieldView::showGui() noexcept {
 
             float mutationChance = m_field->getMutationChance();
             if (ImGui::SliderFloat("Mutation chance", &mutationChance, 0, 1, 
-                                "%.3f", ImGuiSliderFlags_Logarithmic)) {
+                                   "%.3f", ImGuiSliderFlags_Logarithmic)) {
                 m_field->setMutationChance(mutationChance);
+            }
+
+            float energyGain = m_field->getEnergyGain();
+            if (ImGui::SliderFloat("Energy gain", &energyGain, 0.f, 100.f)) {
+                m_field->setEnergyGain(energyGain);
+            }
+
+            float multiplyCost = m_field->getMultiplyCost();
+            if (ImGui::SliderFloat("Multiply cost", &multiplyCost, 1.f, 100.f)) {
+                m_field->setMultiplyCost(multiplyCost);
+            }
+
+            float startEnergy = m_field->getStartEnergy();
+            if (ImGui::SliderFloat("Start energy", &startEnergy, 1.f, 100.f)) {
+                m_field->setStartEnergy(startEnergy);
+            }
+
+            float killGainRatio = m_field->getKillGainRatio();
+            if (ImGui::SliderFloat("Kill gain ratio", &killGainRatio, 0.f, 2.f)) {
+                m_field->setKillGainRatio(killGainRatio);
             }
         }
 
@@ -550,27 +601,6 @@ void FieldView::showGui() noexcept {
             if (ImGui::Button("Create")) {
                 setField(make_unique<Field>(m_fieldWidth, m_fieldHeight, m_randomEngine()));
                 m_field->setTopology(m_fieldTopology);
-
-                m_cellsVertices.resize(m_field->getWidth() * m_field->getHeight() * 6);
-                m_botsVertices.resize(m_field->getWidth() * m_field->getHeight() * 6);
-                for (int x = 0; x < m_field->getWidth(); ++ x)
-                    for (int y = 0; y < m_field->getHeight(); ++ y) {
-                        int offset = y * m_field->getWidth() * 6 + x * 6;
-
-                        m_cellsVertices[offset].position = Vector2f(x, y);
-                        m_cellsVertices[offset + 1].position = Vector2f(x + 1, y);
-                        m_cellsVertices[offset + 2].position = Vector2f(x, y + 1);
-                        m_cellsVertices[offset + 3].position = Vector2f(x + 1, y + 1);
-                        m_cellsVertices[offset + 4].position = Vector2f(x + 1, y);
-                        m_cellsVertices[offset + 5].position = Vector2f(x, y + 1);
-
-                        m_botsVertices[offset].position = Vector2f(x + 0.1f, y + 0.1f);
-                        m_botsVertices[offset + 1].position = Vector2f(x + 0.9f, y + 0.1f);
-                        m_botsVertices[offset + 2].position = Vector2f(x + 0.1f, y + 0.9f);
-                        m_botsVertices[offset + 3].position = Vector2f(x + 0.9f, y + 0.9f);
-                        m_botsVertices[offset + 4].position = Vector2f(x + 0.9f, y + 0.1f);
-                        m_botsVertices[offset + 5].position = Vector2f(x + 0.1f, y + 0.9f);
-                }
             }
         }
         return;
