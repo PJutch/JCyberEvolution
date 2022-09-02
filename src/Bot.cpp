@@ -45,10 +45,10 @@ Bot::Bot(Vector2i position, int rotation, shared_ptr<Species> species) noexcept 
 }
 
 int Bot::decodeRotation(uint16_t code, mt19937_64& randomEngine) const noexcept {
-    if (code & (1 << 5)) {
+    if (code & (1 << 4)) {
         return (getRotation() + code % 8) % 8;
     } else {
-        if (code & (1 << 4)) {
+        if (code & (1 << 3)) {
             return code % 8;
         } else {
             return uniform_int_distribution(0, 7)(randomEngine);
@@ -57,10 +57,10 @@ int Bot::decodeRotation(uint16_t code, mt19937_64& randomEngine) const noexcept 
 }
 
 int Bot::decodeAddress(uint16_t code, mt19937_64& randomEngine) const noexcept {
-    if (code & (1 << 10)) {
+    if (code & (1 << 9)) {
         return (m_instructionPointer + code % 256) % 256;
     } else {
-        if (code & (1 << 9)) {
+        if (code & (1 << 8)) {
             return code % 256;
         } else {
             return uniform_int_distribution(0, 255)(randomEngine);

@@ -68,7 +68,25 @@ Field::Field(int width, int height, uint64_t seed) :
     }
 
     auto species = make_shared<Species>(Color::Red);
-    for (int i = 0; i < 256; ++ i) (*species)[i] = 1;
+    for (int i = 0; i < 256; ++ i) (*species)[i] = 0;
+    (*species)[0] = 2;
+    (*species)[1] = 0b10001;
+    (*species)[2] = 11;
+    (*species)[3] = 0b0100000000;
+    (*species)[4] = 0b1100000000 + 4;
+    (*species)[5] = 0b10000;
+    (*species)[6] = 9;
+    (*species)[7] = 0b1100000000 + 4;
+    (*species)[8] = 0b1100000000 + 8;
+    (*species)[9] = 0b10000;
+    (*species)[10] = 7;
+    (*species)[11] = 0b10000;
+    (*species)[12] = 3;
+    (*species)[13] = 0b0100000000;
+    (*species)[14] = 8;
+    (*species)[11] = 0b10000;
+    (*species)[12] = 3;
+    (*species)[13] = 0b0100000000;
     at(2, 100).createBot(0, species);
 }
 
