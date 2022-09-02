@@ -133,7 +133,7 @@ Decision Bot::makeDecision(int lifetime, const Field& field, mt19937_64& randomE
             decision = {2, 
                 decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
-            m_energy -= 10.0;
+            m_energy -= 20.0;
             m_instructionPointer += 2;
             break;
         case 8: // attack

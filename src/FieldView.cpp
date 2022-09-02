@@ -144,6 +144,7 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
             }
 
             m_field->at(pos.x, pos.y).setBot(make_unique<Bot>(*m_loadedBot));
+            m_field->at(pos.x, pos.y).getBot().setEnergy(10.0);
             return true;
     }
 

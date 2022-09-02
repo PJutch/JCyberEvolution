@@ -381,6 +381,7 @@ void Field::update() noexcept {
                     break;
                 case 4:
                     if (at(x, y).isAlive()) {
+                        bot.setEnergy(bot.getEnergy() + 0.5 * at(x, y).getBot().getEnergy());
                         at(x, y).setShouldDie(true);
                     }
                     break;

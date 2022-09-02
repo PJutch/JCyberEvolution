@@ -56,6 +56,14 @@ public:
         m_directionShape.setPosition(position.x + 0.5f, position.y + 0.5f);
     }
 
+    double getEnergy() const noexcept {
+        return m_energy;
+    }
+
+    void setEnergy(double energy) noexcept {
+        m_energy = energy;
+    }
+
     Decision makeDecision(int lifetime, const Field& field, std::mt19937_64& randomEngine) noexcept;
 
     void drawDirection(sf::RenderTarget& target, sf::RenderStates states) const noexcept {
