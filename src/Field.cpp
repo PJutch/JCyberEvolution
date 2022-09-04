@@ -358,7 +358,7 @@ void Field::update() noexcept {
 
                 Decision decision = decisions[index];
                 Cell& cell = m_cells[index];
-                if (!cell.hasBot() || !areOpposite(decision.direction, currentRotation)) continue;
+                if (!cell.isAlive() || !areOpposite(decision.direction, currentRotation)) continue;
 
                 Bot& bot = cell.getBot();
                 switch (decision.command) {
