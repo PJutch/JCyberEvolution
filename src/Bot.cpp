@@ -152,6 +152,7 @@ Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
             } else {
                 executeTest(false, randomEngine);
             }
+            break;
         }
         case Instruction::TEST_ENEMY: {
             int x, y;
@@ -163,6 +164,7 @@ Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
             } else {
                 executeTest(false, randomEngine);
             }
+            break;
         }
         case Instruction::TEST_ALLY: {
             int x, y;
@@ -174,7 +176,11 @@ Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
             } else {
                 executeTest(false, randomEngine);
             }
+            break;
         }
+        case Instruction::TEST_ENERGY:
+            executeTest(m_energy > (*m_species)[(m_instructionPointer + 3) % 256], randomEngine);
+            break;
         default: 
             ++ m_instructionPointer;
             break;

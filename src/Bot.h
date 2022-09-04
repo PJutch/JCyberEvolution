@@ -38,7 +38,8 @@ public:
         ATTACK,
         TEST_EMPTY,
         TEST_ENEMY,
-        TEST_ALLY
+        TEST_ALLY,
+        TEST_ENERGY
     };
 
     Bot() noexcept;
