@@ -91,16 +91,16 @@ bool Bot::decodeCoords(uint16_t code, int& x, int& y,
 
 Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
                            const Field& field, mt19937_64& randomEngine) noexcept {
-    if (++ m_age > lifetime) return {Decision::Command::DIE, -1};
+    if (++ m_age > lifetime) return {Decision::Action::DIE, -1};
 
-    Decision decision{Decision::Command::SKIP, -1};
+    Decision decision{Decision::Action::SKIP, -1};
 
     bool run = true;
     int eatTimes = 0;
     while (run && m_energy > 0 && eatTimes < 10) {
         switch (static_cast<Bot::Instruction>(((*m_species)[m_instructionPointer]) % 16)) {
         case Instruction::MOVE:
-            decision = {Decision::Command::MOVE, 
+            decision = {Decision::Action::MOVE, 
                 decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
             m_instructionPointer += 2;
@@ -122,24 +122,24 @@ Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
             ++ m_instructionPointer;
             break;
         case Instruction::SKIP:
-            decision = {Decision::Command::SKIP, -1};
+            decision = {Decision::Action::SKIP, -1};
             run = false;
             ++ m_instructionPointer;
             break;
         case Instruction::DIE:
-            decision = {Decision::Command::DIE, -1};
+            decision = {Decision::Action::DIE, -1};
             run = false;
             ++ m_instructionPointer;
             break;
         case Instruction::MULTIPLY:
-            decision = {Decision::Command::MULTIPLY, 
+            decision = {Decision::Action::MULTIPLY, 
                 decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
             m_energy -= multiplyCost;
             m_instructionPointer += 2;
             break;
         case Instruction::ATTACK:
-            decision = {Decision::Command::ATTACK, 
+            decision = {Decision::Action::ATTACK, 
                 decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
             m_instructionPointer += 2;
@@ -192,7 +192,7 @@ Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
         if (m_instructionPointer < 0) m_instructionPointer += 256;
     }
 
-    if (m_energy <= 0) return {Decision::Command::DIE, -1};
+    if (m_energy <= 0) return {Decision::Action::DIE, -1};
 
     return decision;
 }

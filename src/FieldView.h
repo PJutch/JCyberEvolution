@@ -156,6 +156,9 @@ private:
     void drawField(sf::RenderTarget& target, sf::RenderStates states) const noexcept;
     void drawCone(sf::RenderTarget& target, sf::RenderStates states, sf::Vector2f apex) const noexcept;
 
+    void showToolsWindow() noexcept;
+    void showLifeCycleWindow() noexcept;
+
     void showSelectBotTypeGui() noexcept;
     void showSaveBotGui() noexcept;
     void showTopologyCombo() noexcept;

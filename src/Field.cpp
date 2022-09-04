@@ -340,7 +340,7 @@ void Field::update() noexcept {
             decisions.push_back(cell.getBot().makeDecision(
                 m_lifetime, m_energyGain, m_multiplyCost, *this, m_randomEngine));
         } else {
-            decisions.emplace_back(Decision::Command::SKIP, -1);
+            decisions.emplace_back(Decision::Action::SKIP, -1);
         }
     }
 
@@ -361,8 +361,8 @@ void Field::update() noexcept {
                 if (!cell.isAlive() || !areOpposite(decision.direction, currentRotation)) continue;
 
                 Bot& bot = cell.getBot();
-                switch (decision.command) {
-                case Decision::Command::MOVE:
+                switch (decision.action) {
+                case Decision::Action::MOVE:
                     if (!at(x, y).hasBot()) {
                         at(x, y).setBot(make_unique<Bot>(bot));
                         int botRotation = at(x, y).getBot().getRotation();
@@ -372,7 +372,7 @@ void Field::update() noexcept {
                         cell.setShouldDie(true);
                     }
                     break;
-                case Decision::Command::MULTIPLY:
+                case Decision::Action::MULTIPLY:
                     if (!at(x, y).hasBot()) {
                         shared_ptr<Species> parent = bot.getSpecies();
                         shared_ptr<Species> offspring = parent->createMutant(
@@ -382,7 +382,7 @@ void Field::update() noexcept {
                             m_startEnergy, offspring);
                     }
                     break;
-                case Decision::Command::ATTACK:
+                case Decision::Action::ATTACK:
                     if (at(x, y).isAlive()) {
                         bot.setEnergy(bot.getEnergy()
                              + m_killGainRatio * at(x, y).getBot().getEnergy());
@@ -392,7 +392,7 @@ void Field::update() noexcept {
                 }
             }
 
-            if (decisions[y * m_width + x].command == Decision::Command::DIE && at(x, y).isAlive()) {
+            if (decisions[y * m_width + x].action == Decision::Action::DIE && at(x, y).isAlive()) {
                 at(x, y).setShouldDie(true);
             }
     }

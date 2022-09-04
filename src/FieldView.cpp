@@ -515,6 +515,66 @@ void FieldView::setField(std::unique_ptr<Field>&& field) noexcept {
     }
 }
 
+void FieldView::showToolsWindow() noexcept {
+    with_Window("Tools") {
+    ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
+    if (ImGui::Button("Random fill")) {
+        m_selectedBot = {-1, -1};
+        m_field->randomFill(m_fillDensity);
+        fill(m_populationHistory, m_field->computePopulation());
+    }
+
+    if (ImGui::Button("Clear")) {
+        m_selectedBot = {-1, -1};
+        m_field->clear();
+        fill(m_populationHistory, 0);
+    }
+
+    int tool = static_cast<int>(m_tool);
+    ImGui::Combo("Click tool", &tool, "Select bot\0Delete bot\0Place bot\0");
+    m_tool = static_cast<Tool>(tool);
+    if (m_tool != Tool::SELECT_BOT) m_selectedBot = {-1, -1};
+
+    showSelectBotTypeGui();
+    showSaveBotGui();
+}
+}
+
+void FieldView::showLifeCycleWindow() noexcept {
+    with_Window("Life cycle") {
+        int lifetime = m_field->getLifetime();
+        if (ImGui::SliderInt("Lifetime", &lifetime, 0, 1024)) {
+            m_field->setLifetime(lifetime);
+        }
+
+        float mutationChance = m_field->getMutationChance();
+        if (ImGui::SliderFloat("Mutation chance", &mutationChance, 0, 1, 
+                                "%.3f", ImGuiSliderFlags_Logarithmic)) {
+            m_field->setMutationChance(mutationChance);
+        }
+
+        float energyGain = m_field->getEnergyGain();
+        if (ImGui::SliderFloat("Energy gain", &energyGain, 0.f, 100.f)) {
+            m_field->setEnergyGain(energyGain);
+        }
+
+        float multiplyCost = m_field->getMultiplyCost();
+        if (ImGui::SliderFloat("Multiply cost", &multiplyCost, 1.f, 100.f)) {
+            m_field->setMultiplyCost(multiplyCost);
+        }
+
+        float startEnergy = m_field->getStartEnergy();
+        if (ImGui::SliderFloat("Start energy", &startEnergy, 1.f, 100.f)) {
+            m_field->setStartEnergy(startEnergy);
+        }
+
+        float killGainRatio = m_field->getKillGainRatio();
+        if (ImGui::SliderFloat("Kill gain ratio", &killGainRatio, 0.f, 2.f)) {
+            m_field->setKillGainRatio(killGainRatio);
+        }
+    }
+}
+
 void FieldView::showGui() noexcept {
     if (m_field) {
         with_Window("View") {
@@ -524,28 +584,7 @@ void FieldView::showGui() noexcept {
             ImGui::SliderFloat("Simulation speed", &m_simulationSpeed, 0.f, 16.f);
         }
 
-        with_Window("Tools") {
-            ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
-            if (ImGui::Button("Random fill")) {
-                m_selectedBot = {-1, -1};
-                m_field->randomFill(m_fillDensity);
-                fill(m_populationHistory, m_field->computePopulation());
-            }
-
-            if (ImGui::Button("Clear")) {
-                m_selectedBot = {-1, -1};
-                m_field->clear();
-                fill(m_populationHistory, 0);
-            }
-
-            int tool = static_cast<int>(m_tool);
-            ImGui::Combo("Click tool", &tool, "Select bot\0Delete bot\0Place bot\0");
-            m_tool = static_cast<Tool>(tool);
-            if (m_tool != Tool::SELECT_BOT) m_selectedBot = {-1, -1};
-
-            showSelectBotTypeGui();
-            showSaveBotGui();
-        }
+        showToolsWindow();
 
         with_Window("Statistics") {
             ImGui::Text("Epoch: %i", m_field->getEpoch());
@@ -556,38 +595,7 @@ void FieldView::showGui() noexcept {
                             0.f, m_field->getWidth() * m_field->getHeight(), ImVec2(0, 80.0f));
         }
 
-        with_Window("Life cycle") {
-            int lifetime = m_field->getLifetime();
-            if (ImGui::SliderInt("Lifetime", &lifetime, 0, 1024)) {
-                m_field->setLifetime(lifetime);
-            }
-
-            float mutationChance = m_field->getMutationChance();
-            if (ImGui::SliderFloat("Mutation chance", &mutationChance, 0, 1, 
-                                   "%.3f", ImGuiSliderFlags_Logarithmic)) {
-                m_field->setMutationChance(mutationChance);
-            }
-
-            float energyGain = m_field->getEnergyGain();
-            if (ImGui::SliderFloat("Energy gain", &energyGain, 0.f, 100.f)) {
-                m_field->setEnergyGain(energyGain);
-            }
-
-            float multiplyCost = m_field->getMultiplyCost();
-            if (ImGui::SliderFloat("Multiply cost", &multiplyCost, 1.f, 100.f)) {
-                m_field->setMultiplyCost(multiplyCost);
-            }
-
-            float startEnergy = m_field->getStartEnergy();
-            if (ImGui::SliderFloat("Start energy", &startEnergy, 1.f, 100.f)) {
-                m_field->setStartEnergy(startEnergy);
-            }
-
-            float killGainRatio = m_field->getKillGainRatio();
-            if (ImGui::SliderFloat("Kill gain ratio", &killGainRatio, 0.f, 2.f)) {
-                m_field->setKillGainRatio(killGainRatio);
-            }
-        }
+        showLifeCycleWindow();
 
         with_Window("Field") {
             showTopologyCombo();

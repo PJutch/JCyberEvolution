@@ -18,7 +18,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <cstdint>
 
 struct Decision {
-    enum class Command {
+    enum class Action {
         SKIP = 0,
         MOVE,
         MULTIPLY,
@@ -26,7 +26,7 @@ struct Decision {
         ATTACK
     };
 
-    Command command;
+    Action action;
     int direction;
 };
 
