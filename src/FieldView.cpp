@@ -583,6 +583,11 @@ void FieldView::showLifeCycleWindow() noexcept {
         if (ImGui::SliderFloat("Grass growth", &grassGrowth, 0.f, 100.f)) {
             m_field->setGrassGrowth(grassGrowth);
         }
+
+        float grassSpread = m_field->getGrassSpread();
+        if (ImGui::SliderFloat("Grass spread", &grassSpread, 0.f, 0.125f)) {
+            m_field->setGrassSpread(grassSpread);
+        }
     }
 }
 

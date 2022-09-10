@@ -36,6 +36,10 @@ using std::uniform_real_distribution;
 #include <vector>
 using std::vector;
 
+#include <algorithm>
+using std::max;
+using std::clamp;
+
 #include <memory>
 using std::make_unique;
 using std::make_shared;
@@ -56,7 +60,7 @@ Field::Field(int width, int height, uint64_t seed) :
         m_width{width}, m_height{height}, m_topology{Topology::TORUS}, m_cells{width * height}, 
         m_epoch{0},  m_lifetime{256}, m_mutationChance{0.001},
         m_energyGain{10.0}, m_multiplyCost{20.0}, m_startEnergy{10.0}, m_killGainRatio{0.5},
-        m_eatEfficiency{0.5}, m_grassGrowth{5.0},
+        m_eatEfficiency{0.5}, m_grassGrowth{5.0}, m_grassSpread{0.1},
         m_view{nullptr}, m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);
@@ -66,7 +70,7 @@ Field::Field(int width, int height, uint64_t seed) :
     for (int y = 0; y < m_height; ++ y) {
         for (int x = 0; x < m_width; ++ x) {
             emplace(x, y);
-            at(x, y).setGrass(2550.0);
+            at(x, y).setGrass(255.0);
         }
     }
 }
@@ -377,13 +381,35 @@ void Field::update() noexcept {
             }
     }
 
+    vector<double> newGrass;
+    newGrass.reserve(m_width * m_height);
+    for (int y = 0; y < m_height; ++ y)
+        for (int x = 0; x < m_width; ++ x) {
+            newGrass.push_back(at(x, y).getGrass() + m_grassGrowth);
+    }
+
+    for (int y = 0; y < m_height; ++ y)
+        for (int x = 0; x < m_width; ++ x)
+            for (int rotation = 0; rotation < 8; ++ rotation) {
+                    auto [dx, dy] = getOffsetForRotation(rotation);
+                    int xCurrent = x + dx, yCurrent = y + dy;
+                    int currentRotation = rotation;
+
+                    if (!makeIndicesSafe(xCurrent, yCurrent, &currentRotation)) continue;
+                    int rotationDelta = rotation - currentRotation;
+                    int index = yCurrent * m_width + xCurrent;
+
+                    newGrass[y * m_width + x] += m_grassSpread * at(xCurrent, yCurrent).getGrass();
+                    newGrass[index] -= m_grassSpread * at(xCurrent, yCurrent).getGrass();
+    }
+
     for (int y = 0; y < m_height; ++ y)
         for (int x = 0; x < m_width; ++ x) {
             if (at(x, y).checkShouldDie()) {
                 if (m_view) m_view->handleBotDied({x, y});
             }
 
-            at(x, y).setGrass(at(x, y).getGrass() + m_grassGrowth);
+            at(x, y).setGrass(clamp(newGrass[y * m_width + x], 0.0, 255.0));
     }
 
     ++ m_epoch;
@@ -411,6 +437,6 @@ void Field::clear() noexcept {
 
     for (Cell& cell : m_cells) {
         cell.deleteBot();
-        cell.setGrass(2550.0);
+        cell.setGrass(255.0);
     }
 }

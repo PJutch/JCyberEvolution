@@ -132,6 +132,14 @@ public:
         m_grassGrowth = grassGrowth;
     }
 
+    double getGrassSpread() const noexcept {
+        return m_grassSpread;
+    }
+
+    void setGrassSpread(double grassSpread) noexcept {
+        m_grassSpread = grassSpread;
+    }
+
     Topology getTopology() const noexcept {
         return m_topology;
     }
@@ -209,6 +217,7 @@ private:
     double m_killGainRatio;
     double m_eatEfficiency;
     double m_grassGrowth;
+    double m_grassSpread;
 
     FieldView* m_view;
 
