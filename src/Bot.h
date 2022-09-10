@@ -45,9 +45,9 @@ public:
     Bot() noexcept;
     Bot(sf::Vector2i position, int rotation, double energy, std::shared_ptr<Species> species) noexcept;
 
-    static Bot createRandom(std::mt19937_64& randomEngine) noexcept {
+    static Bot createRandom(sf::Vector2i position, std::mt19937_64& randomEngine) noexcept {
         int rotation = std::uniform_int_distribution(0, 7)(randomEngine);
-        return Bot{{0, 0}, rotation, 10.0, Species::createRandom(randomEngine)};
+        return Bot{position, rotation, 10.0, Species::createRandom(randomEngine)};
     }
 
     sf::Color getColor() const noexcept {
@@ -80,7 +80,7 @@ public:
     }
 
     Decision makeDecision(int lifetime, double energyGain, double multiplyCost, 
-                          const Field& field, std::mt19937_64& randomEngine) noexcept;
+                          Field& field, std::mt19937_64& randomEngine) noexcept;
 
     void drawDirection(sf::RenderTarget& target, sf::RenderStates states) const noexcept {
         target.draw(m_directionShape, states);

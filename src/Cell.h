@@ -24,10 +24,10 @@ If not, see <https://www.gnu.org/licenses/>. */
 class Cell {
 public:
     Cell() noexcept = default;
-    Cell(sf::Vector2f position, sf::Color color) noexcept;
+    Cell(sf::Vector2f position) noexcept;
 
     sf::Color getColor() const noexcept {
-        return m_color;
+        return sf::Color(0, std::min(m_grass / 10.0, 255.0), 0);
     }
 
     bool hasBot() const noexcept {
@@ -75,6 +75,14 @@ public:
         return false;
     }
 
+    double getGrass() const noexcept {
+        return m_grass;
+    }
+
+    void setGrass(double grass) noexcept {
+        m_grass = grass;
+    }
+
     bool isAlive() const noexcept {
         return hasBot() && !m_shouldDie;
     }
@@ -82,8 +90,9 @@ private:
     std::unique_ptr<Bot> m_bot;
     bool m_shouldDie;
 
+    double m_grass;
+
     sf::Vector2i m_position;
-    sf::Color m_color;
 };
 
 #endif

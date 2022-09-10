@@ -64,7 +64,8 @@ Field::Field(int width, int height, uint64_t seed) :
 
     for (int y = 0; y < m_height; ++ y) {
         for (int x = 0; x < m_width; ++ x) {
-            emplace(x, y, Color::Green);
+            emplace(x, y);
+            at(x, y).setGrass(1000.0);
         }
     }
 
@@ -402,6 +403,8 @@ void Field::update() noexcept {
             if (at(x, y).checkShouldDie()) {
                 if (m_view) m_view->handleBotDied({x, y});
             }
+
+            at(x, y).setGrass(at(x, y).getGrass() + 5.0);
     }
 
     ++ m_epoch;
@@ -418,11 +421,10 @@ int Field::computePopulation() const noexcept {
 void Field::randomFill(float density) noexcept {
     clear();
 
-    for (Cell& cell : m_cells) {
-        if (uniform_real_distribution<float>(0.f, 1.f)(m_randomEngine) < density) {
-            cell.setBot(make_unique<Bot>(Bot::createRandom(m_randomEngine)));
-        }
-    }
+    for (int x = 0; x < m_width; ++ x) 
+        for (int y = 0; y < m_height; ++ y)
+            if (uniform_real_distribution<float>(0.f, 1.f)(m_randomEngine) < density)
+                at(x, y).setBot(make_unique<Bot>(Bot::createRandom({x, y}, m_randomEngine)));
 }
 
 void Field::clear() noexcept {

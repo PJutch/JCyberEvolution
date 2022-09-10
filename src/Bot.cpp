@@ -27,6 +27,9 @@ using sf::RenderStates;
 #include <random>
 using std::mt19937_64;
 
+#include <algorithm>
+using std::min;
+
 #include <memory>
 using std::shared_ptr;
 using std::make_shared;
@@ -90,14 +93,14 @@ bool Bot::decodeCoords(uint16_t code, int& x, int& y,
 }
 
 Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
-                           const Field& field, mt19937_64& randomEngine) noexcept {
+                           Field& field, mt19937_64& randomEngine) noexcept {
     if (++ m_age > lifetime) return {Decision::Action::DIE, -1};
 
     Decision decision{Decision::Action::SKIP, -1};
 
+    Cell& cell = field.at(m_position.x, m_position.y);
     bool run = true;
-    int eatTimes = 0;
-    while (run && m_energy > 0 && eatTimes < 10) {
+    while (run && m_energy > 0) {
         switch (static_cast<Bot::Instruction>(((*m_species)[m_instructionPointer]) % 16)) {
         case Instruction::MOVE:
             decision = {Decision::Action::MOVE, 
@@ -116,11 +119,13 @@ Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
             m_instructionPointer 
                 = decodeAddress((*m_species)[(m_instructionPointer + 1) % 256], randomEngine);
             break;
-        case Instruction::EAT:
-            m_energy += energyGain;
-            ++ eatTimes;
+        case Instruction::EAT: {
+            double eaten = min(cell.getGrass() / 2.0, energyGain);
+            cell.setGrass(cell.getGrass() - 2.0 * eaten);
+            m_energy += eaten;
             ++ m_instructionPointer;
             break;
+        }
         case Instruction::SKIP:
             decision = {Decision::Action::SKIP, -1};
             run = false;

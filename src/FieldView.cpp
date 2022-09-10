@@ -133,7 +133,7 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
             if (!m_loadedBot) {
                 if (m_selectedFile == -1) {
                     m_field->at(pos.x, pos.y).setBot(
-                        make_unique<Bot>(Bot::createRandom(m_field->getRandomEngine())));
+                        make_unique<Bot>(Bot::createRandom(pos, m_field->getRandomEngine())));
                     return true;
                 }
 
