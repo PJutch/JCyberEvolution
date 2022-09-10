@@ -69,29 +69,6 @@ Field::Field(int width, int height, uint64_t seed) :
             at(x, y).setGrass(2550.0);
         }
     }
-
-    auto species = make_shared<Species>(Color::Red);
-    for (int i = 0; i < 256; ++ i) (*species)[i] = 0;
-    (*species)[0] = 4;
-    (*species)[1] = 2;
-    (*species)[2] = 0b10001;
-    (*species)[3] = 11;
-    (*species)[4] = 0b0100000000;
-    (*species)[5] = 0b1100000000 + 4;
-    (*species)[6] = 0b10000;
-    (*species)[7] = 9;
-    (*species)[8] = 0b1100000000 + 4;
-    (*species)[9] = 0b1100000000 + 8;
-    (*species)[10] = 0b10000;
-    (*species)[11] = 7;
-    (*species)[12] = 0b10000;
-    (*species)[13] = 3;
-    (*species)[14] = 0b0100000000;
-    (*species)[15] = 8;
-    (*species)[16] = 0b10000;
-    (*species)[17] = 3;
-    (*species)[18] = 0b0100000000;
-    at(2, 100).createBot(0, m_startEnergy, species);
 }
 
 bool Field::makeIndicesSafe(int& x, int& y, int* rotation) const noexcept {
