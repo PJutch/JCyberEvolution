@@ -70,10 +70,11 @@ using std::fmodf;
 const int POPULATION_HISTORY_SIZE = 128;
 
 FieldView::FieldView(Vector2f screenSize, uint64_t seed) : 
-        m_field{nullptr}, m_fieldWidth{128}, m_fieldHeight{128}, m_fieldTopology{Field::Topology::TORUS},
+        m_field{nullptr}, m_fieldWidth{128}, m_fieldHeight{128}, 
+        m_fieldTopology{Field::Topology::TORUS},
         m_randomEngine{seed}, m_cellsVertices{Triangles}, m_botsVertices{Triangles}, m_view{},
         m_screenSize{screenSize}, m_zoom{1.0f}, m_shouldDrawBots{true}, 
-        m_fillDensity{0.5f}, m_simulationSpeed{1.f}, m_simulationStepRest{0.f}, m_paused{false}, 
+        m_fillDensity{0.5f}, m_simulationSpeed{1.f}, m_simulationStepRest{0.f}, m_paused{true}, 
         m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
         m_recentFiles{}, m_selectedFile{-1}, m_loadedBot{nullptr}, 
         m_populationHistory(128, 0),

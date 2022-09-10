@@ -66,7 +66,7 @@ Field::Field(int width, int height, uint64_t seed) :
     for (int y = 0; y < m_height; ++ y) {
         for (int x = 0; x < m_width; ++ x) {
             emplace(x, y);
-            at(x, y).setGrass(1000.0);
+            at(x, y).setGrass(2550.0);
         }
     }
 
@@ -434,5 +434,6 @@ void Field::clear() noexcept {
 
     for (Cell& cell : m_cells) {
         cell.deleteBot();
+        cell.setGrass(2550.0);
     }
 }
