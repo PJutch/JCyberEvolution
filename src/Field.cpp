@@ -56,6 +56,7 @@ Field::Field(int width, int height, uint64_t seed) :
         m_width{width}, m_height{height}, m_topology{Topology::TORUS}, m_cells{width * height}, 
         m_epoch{0},  m_lifetime{256}, m_mutationChance{0.001},
         m_energyGain{10.0}, m_multiplyCost{20.0}, m_startEnergy{10.0}, m_killGainRatio{0.5},
+        m_eatEfficiency{0.5}, m_grassGrowth{5.0},
         m_view{nullptr}, m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);
@@ -338,8 +339,7 @@ void Field::update() noexcept {
     decisions.reserve(m_width * m_height);
     for (Cell& cell : m_cells) {
         if (cell.hasBot()) {
-            decisions.push_back(cell.getBot().makeDecision(
-                m_lifetime, m_energyGain, m_multiplyCost, *this, m_randomEngine));
+            decisions.push_back(cell.getBot().makeDecision(*this));
         } else {
             decisions.emplace_back(Decision::Action::SKIP, -1);
         }
@@ -359,7 +359,8 @@ void Field::update() noexcept {
 
                 Decision decision = decisions[index];
                 Cell& cell = m_cells[index];
-                if (!cell.isAlive() || !areOpposite(decision.direction, currentRotation)) continue;
+                if (!cell.isAlive() 
+                    || !areOpposite(decision.direction, currentRotation)) continue;
 
                 Bot& bot = cell.getBot();
                 switch (decision.action) {
@@ -393,7 +394,8 @@ void Field::update() noexcept {
                 }
             }
 
-            if (decisions[y * m_width + x].action == Decision::Action::DIE && at(x, y).isAlive()) {
+            if (decisions[y * m_width + x].action == Decision::Action::DIE 
+                && at(x, y).isAlive()) {
                 at(x, y).setShouldDie(true);
             }
     }
@@ -404,7 +406,7 @@ void Field::update() noexcept {
                 if (m_view) m_view->handleBotDied({x, y});
             }
 
-            at(x, y).setGrass(at(x, y).getGrass() + 5.0);
+            at(x, y).setGrass(at(x, y).getGrass() + m_grassGrowth);
     }
 
     ++ m_epoch;

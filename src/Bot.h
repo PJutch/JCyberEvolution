@@ -79,8 +79,7 @@ public:
         m_energy = energy;
     }
 
-    Decision makeDecision(int lifetime, double energyGain, double multiplyCost, 
-                          Field& field, std::mt19937_64& randomEngine) noexcept;
+    Decision makeDecision(Field& field) noexcept;
 
     void drawDirection(sf::RenderTarget& target, sf::RenderStates states) const noexcept {
         target.draw(m_directionShape, states);

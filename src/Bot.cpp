@@ -92,19 +92,21 @@ bool Bot::decodeCoords(uint16_t code, int& x, int& y,
     return field.makeIndicesSafe(x, y);
 }
 
-Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
-                           Field& field, mt19937_64& randomEngine) noexcept {
-    if (++ m_age > lifetime) return {Decision::Action::DIE, -1};
+Decision Bot::makeDecision(Field& field) noexcept {
+    if (++ m_age > field.getLifetime()) return {Decision::Action::DIE, -1};
 
     Decision decision{Decision::Action::SKIP, -1};
 
+    mt19937_64& randomEngine = field.getRandomEngine();
     Cell& cell = field.at(m_position.x, m_position.y);
+
     bool run = true;
     while (run && m_energy > 0) {
         switch (static_cast<Bot::Instruction>(((*m_species)[m_instructionPointer]) % 16)) {
         case Instruction::MOVE:
             decision = {Decision::Action::MOVE, 
-                decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
+                decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], 
+                               field.getRandomEngine())};
             run = false;
             m_instructionPointer += 2;
             break;
@@ -120,8 +122,9 @@ Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
                 = decodeAddress((*m_species)[(m_instructionPointer + 1) % 256], randomEngine);
             break;
         case Instruction::EAT: {
-            double eaten = min(cell.getGrass() / 2.0, energyGain);
-            cell.setGrass(cell.getGrass() - 2.0 * eaten);
+            double eaten = min(field.getEatEfficiency() * cell.getGrass(), 
+                               field.getEnergyGain());
+            cell.setGrass(cell.getGrass() - eaten / field.getEatEfficiency());
             m_energy += eaten;
             ++ m_instructionPointer;
             break;
@@ -140,7 +143,7 @@ Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
             decision = {Decision::Action::MULTIPLY, 
                 decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], randomEngine)};
             run = false;
-            m_energy -= multiplyCost;
+            m_energy -= field.getMultiplyCost();
             m_instructionPointer += 2;
             break;
         case Instruction::ATTACK:
@@ -165,7 +168,8 @@ Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
                              x, y, field, randomEngine)) {
                 const Cell& cell = field.at(x, y);
                 executeTest(cell.hasBot() 
-                    && computeDifference(*m_species, *cell.getBot().getSpecies()) != 0, randomEngine);
+                    && computeDifference(*m_species, *cell.getBot().getSpecies()) != 0, 
+                    randomEngine);
             } else {
                 executeTest(false, randomEngine);
             }
@@ -177,14 +181,16 @@ Decision Bot::makeDecision(int lifetime, double energyGain, double multiplyCost,
                              x, y, field, randomEngine)) {
                 const Cell& cell = field.at(x, y);
                 executeTest(field.at(x, y).hasBot()
-                    && computeDifference(*m_species, *cell.getBot().getSpecies()) == 0, randomEngine);
+                    && computeDifference(*m_species, *cell.getBot().getSpecies()) == 0,
+                    randomEngine);
             } else {
                 executeTest(false, randomEngine);
             }
             break;
         }
         case Instruction::TEST_ENERGY:
-            executeTest(m_energy > (*m_species)[(m_instructionPointer + 3) % 256], randomEngine);
+            executeTest(m_energy > (*m_species)[(m_instructionPointer + 3) % 256], 
+                        randomEngine);
             break;
         default: 
             ++ m_instructionPointer;

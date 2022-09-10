@@ -572,6 +572,16 @@ void FieldView::showLifeCycleWindow() noexcept {
         if (ImGui::SliderFloat("Kill gain ratio", &killGainRatio, 0.f, 2.f)) {
             m_field->setKillGainRatio(killGainRatio);
         }
+
+        float eatEfficiency = m_field->getEatEfficiency();
+        if (ImGui::SliderFloat("Eat efficiency", &eatEfficiency, 0.f, 2.f)) {
+            m_field->setEatEfficiency(eatEfficiency);
+        }
+
+        float grassGrowth = m_field->getGrassGrowth();
+        if (ImGui::SliderFloat("Grass growth", &grassGrowth, 0.f, 100.f)) {
+            m_field->setGrassGrowth(grassGrowth);
+        }
     }
 }
 

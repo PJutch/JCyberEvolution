@@ -116,6 +116,22 @@ public:
         m_killGainRatio = killGainRatio;
     }
 
+    double getEatEfficiency() const noexcept {
+        return m_eatEfficiency;
+    }
+
+    void setEatEfficiency(double eatEfficiency) noexcept {
+        m_eatEfficiency = eatEfficiency;
+    }
+
+    double getGrassGrowth() const noexcept {
+        return m_grassGrowth;
+    }
+
+    void setGrassGrowth(double grassGrowth) noexcept {
+        m_grassGrowth = grassGrowth;
+    }
+
     Topology getTopology() const noexcept {
         return m_topology;
     }
@@ -191,6 +207,8 @@ private:
     double m_multiplyCost;
     double m_startEnergy;
     double m_killGainRatio;
+    double m_eatEfficiency;
+    double m_grassGrowth;
 
     FieldView* m_view;
 
