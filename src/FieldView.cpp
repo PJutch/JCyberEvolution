@@ -66,6 +66,7 @@ using std::min;
 using std::pow;
 using std::fmod;
 using std::fmodf;
+using std::floor;
 
 const int POPULATION_HISTORY_SIZE = 128;
 
@@ -118,7 +119,7 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
     }
 
     Vector2f posf = target.mapPixelToCoords({event.x, event.y}, m_view);
-    Vector2i pos(posf.x, posf.y);
+    Vector2i pos(floor(posf.x), floor(posf.y));
     if (!m_field->makeIndicesSafe(pos.x, pos.y)) return handleOutsideClick();
 
     switch (m_tool) {
