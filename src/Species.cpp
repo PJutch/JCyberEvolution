@@ -108,7 +108,7 @@ int computeDifference(const Species& lhs, const Species& rhs) noexcept {
 }
 
 ostream& operator<< (ostream& os, const Species& species) noexcept {
-    os << 1 << ' ' << species.m_color.toInteger();
+    os << species.m_color.toInteger();
     for (uint16_t value : species.m_genome) {
         os << ' ' << value;
     }
@@ -116,9 +116,6 @@ ostream& operator<< (ostream& os, const Species& species) noexcept {
 }
 
 istream& operator>> (istream& is, Species& species) noexcept {
-    int version;
-    is >> version;
-
     Uint32 color;
     is >> color;
     species.m_color = Color{color};

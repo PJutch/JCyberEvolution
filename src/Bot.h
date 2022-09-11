@@ -86,14 +86,11 @@ public:
     }
 
     inline friend std::ostream& operator<< (std::ostream& os, const Bot& bot) noexcept {
-        os << 1 << ' '  << bot.m_instructionPointer << ' ' << bot.m_age << ' ' << *bot.m_species;
+        os << bot.m_instructionPointer << ' ' << bot.m_age << ' ' << *bot.m_species;
         return os;
     }
 
-    inline friend std::istream& operator>> (std::istream& is, Bot& bot) noexcept {
-        int version;
-        is >> version; // check in the future
-    
+    inline friend std::istream& operator>> (std::istream& is, Bot& bot) noexcept {  
         auto species = std::make_shared<Species>();
         is >> bot.m_instructionPointer >> bot.m_age >> *species;
         bot.setSpecies(species);
