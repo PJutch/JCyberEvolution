@@ -62,7 +62,7 @@ Field::Field(int width, int height, uint64_t seed) :
         m_energyGain{10.0}, m_multiplyCost{20.0}, m_startEnergy{10.0}, m_killGainRatio{0.5},
         m_eatEfficiency{0.5}, m_grassGrowth{0.05}, m_grassSpread{0.1}, m_eatLong{true},
         m_usedEnergyOrganicRatio{0.5}, m_eatenOrganicRatio{0.5}, m_killOrganicRatio{0.5}, 
-        m_dieOrganicRatio{0.25}, m_organicGrassRatio{4.0}, m_organicSpread{0.1}, 
+        m_diedOrganicRatio{0.25}, m_organicGrassRatio{5.0}, m_organicSpread{0.1}, 
         m_organicSpoil{0.05}, m_grassDeath{0.05}, m_deadGrassOrganicRatio{0.5},
         m_view{nullptr}, m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
@@ -382,7 +382,7 @@ void Field::update() noexcept {
             if (decisions[y * m_width + x].action == Decision::Action::DIE 
                     && at(x, y).isAlive()) {
                 at(x, y).setShouldDie(true);
-                decisions[y * m_width + x].organic += m_dieOrganicRatio * at(x, y).getBot().getEnergy();
+                decisions[y * m_width + x].organic += m_diedOrganicRatio * at(x, y).getBot().getEnergy();
             }
     }
 

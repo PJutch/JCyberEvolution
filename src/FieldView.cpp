@@ -563,7 +563,7 @@ void FieldView::showLifeCycleWindow() noexcept {
 
         float mutationChance = m_field->getMutationChance();
         if (SliderFloat("Mutation chance", &mutationChance, 0, 1, 
-                                "%.3f", ImGuiSliderFlags_Logarithmic)) {
+                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
             m_field->setMutationChance(mutationChance);
         }
 
@@ -598,13 +598,64 @@ void FieldView::showLifeCycleWindow() noexcept {
         }
 
         float grassGrowth = m_field->getGrassGrowth();
-        if (SliderFloat("Grass growth", &grassGrowth, 0.f, 100.f)) {
+        if (SliderFloat("Grass growth rate", &grassGrowth, 0.f, 1.f)) {
             m_field->setGrassGrowth(grassGrowth);
         }
 
         float grassSpread = m_field->getGrassSpread();
-        if (SliderFloat("Grass spread", &grassSpread, 0.f, 0.125f)) {
+        if (SliderFloat("Grass spread rate", &grassSpread, 0.f, 0.125f)) {
             m_field->setGrassSpread(grassSpread);
+        }
+
+        float usedEnergyOrganicRatio = m_field->getUsedEnergyOrganicRatio();
+        if (SliderFloat("Used energy to organic ratio", &usedEnergyOrganicRatio, 0.f, 16.f,
+                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
+            m_field->setUsedEnergyOrganicRatio(usedEnergyOrganicRatio);
+        }
+
+        float eatenOrganicRatio = m_field->getEatenOrganicRatio();
+        if (SliderFloat("Eaten grass to organic ratio", &eatenOrganicRatio, 0.f, 16.f, 
+                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
+            m_field->setEatenOrganicRatio(eatenOrganicRatio);
+        }
+
+        float killOrganicRatio = m_field->getKillOrganicRatio();
+        if (SliderFloat("Killed energy to organic ratio", &killOrganicRatio, 0.f, 16.f, 
+                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
+            m_field->setKillOrganicRatio(killOrganicRatio);
+        }
+
+        float diedOrganicRatio = m_field->getDiedOrganicRatio();
+        if (SliderFloat("Died energy to organic ratio", &diedOrganicRatio, 0.f, 16.f, 
+                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
+            m_field->setDiedOrganicRatio(diedOrganicRatio);
+        }
+
+        float organicGrassRatio = m_field->getOrganicGrassRatio();
+        if (SliderFloat("Organic to growed grass ratio", &organicGrassRatio, 0.f, 16.f, 
+                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
+            m_field->setOrganicGrassRatio(organicGrassRatio);
+        }
+
+        float organicSpread = m_field->getOrganicSpread();
+        if (SliderFloat("Organic spread rate", &organicSpread, 0.f, 0.125f)) {
+            m_field->setOrganicSpread(organicSpread);
+        }
+
+        float organicSpoil = m_field->getOrganicSpoil();
+        if (SliderFloat("Organic spoil rate", &organicSpoil, 0.f, 1.f)) {
+            m_field->setOrganicSpoil(organicSpoil);
+        }
+
+        float grassDeath = m_field->getGrassDeath();
+        if (SliderFloat("Grass death rate", &grassDeath, 0.f, 1.f)) {
+            m_field->setGrassDeath(grassDeath);
+        }
+
+        float deadGrassOrganicRatio = m_field->getDeadGrassOrganicRatio();
+        if (SliderFloat("Dead grass to organic ratio", &deadGrassOrganicRatio, 0.f, 16.f, 
+                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
+            m_field->setDeadGrassOrganicRatio(deadGrassOrganicRatio);
         }
     }
 }

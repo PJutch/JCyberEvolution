@@ -180,12 +180,44 @@ public:
         m_organicGrassRatio = organicGrassRatio;
     }
 
-    double getDieOrganicRatio() const noexcept {
-        return m_dieOrganicRatio;
+    double getDiedOrganicRatio() const noexcept {
+        return m_diedOrganicRatio;
     }
 
-    void setDieOrganicRatio(double dieOrganicRatio) noexcept {
-        m_dieOrganicRatio = dieOrganicRatio;
+    void setDiedOrganicRatio(double diedOrganicRatio) noexcept {
+        m_diedOrganicRatio = diedOrganicRatio;
+    }
+
+    double getOrganicSpread() const noexcept {
+        return m_organicSpread;
+    }
+
+    void setOrganicSpread(double organicSpread) noexcept {
+        m_organicSpread = organicSpread;
+    }
+
+    double getOrganicSpoil() const noexcept {
+        return m_organicSpoil;
+    }
+
+    void setOrganicSpoil(double organicSpoil) noexcept {
+        m_organicSpoil = organicSpoil;
+    }
+
+    double getGrassDeath() const noexcept {
+        return m_grassDeath;
+    }
+
+    void setGrassDeath(double grassDeath) noexcept {
+        m_grassDeath = grassDeath;
+    }
+
+    double getDeadGrassOrganicRatio() const noexcept {
+        return m_deadGrassOrganicRatio;
+    }
+
+    void setDeadGrassOrganicRatio(double deadGrassOrganicRatio) noexcept {
+        m_deadGrassOrganicRatio = deadGrassOrganicRatio;
     }
 
     Topology getTopology() const noexcept {
@@ -270,7 +302,7 @@ private:
     double m_usedEnergyOrganicRatio;
     double m_eatenOrganicRatio;
     double m_killOrganicRatio;
-    double m_dieOrganicRatio;
+    double m_diedOrganicRatio;
     double m_organicGrassRatio;
     double m_organicSpread;
     double m_organicSpoil;
