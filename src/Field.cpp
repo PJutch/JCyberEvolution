@@ -374,6 +374,7 @@ void Field::update() noexcept {
                             + m_killGainRatio * at(x, y).getBot().getEnergy());
                         decision.organic += m_killOrganicRatio * at(x, y).getBot().getEnergy();
                         at(x, y).setShouldDie(true);
+                        bot.handleKill();
                     }
                     break;
                 }

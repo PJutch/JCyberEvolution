@@ -38,7 +38,9 @@ public:
 
     enum class Mode {
         LANDSCAPE = 0,
-        BOTS
+        BOTS,
+        FOOD,
+        AGE,
     };
 
     FieldView(sf::Vector2f screenSize, uint64_t seed);
@@ -165,10 +167,7 @@ private:
         return sf::Color(std::min(cell.getOrganic(), 255.0), std::min(cell.getGrass(), 255.0), 0);
     }
 
-    sf::Color getBotColor(const Cell& cell) const noexcept {
-        if (cell.hasBot()) return cell.getBot().getColor();
-        return sf::Color::Transparent;
-    }
+    sf::Color getBotColor(const Cell& cell) const noexcept;
 
     void drawField(sf::RenderTarget& target, sf::RenderStates states) const noexcept;
     void drawCone(sf::RenderTarget& target, sf::RenderStates states, sf::Vector2f apex) const noexcept;

@@ -79,6 +79,23 @@ public:
         m_energy = energy;
     }
 
+    int getAge() const noexcept {
+        return m_age;
+    }
+
+    int getKills() const noexcept {
+        return m_kills;
+    }
+
+    int getEats() const noexcept {
+        return m_eats;
+    }
+
+    bool handleKill() noexcept {
+        ++ m_kills;
+        return true;
+    }
+
     Decision makeDecision(Field& field) noexcept;
 
     void drawDirection(sf::RenderTarget& target, sf::RenderStates states) const noexcept {
@@ -101,6 +118,9 @@ private:
     std::shared_ptr<Species> m_species;
     int m_age;
     double m_energy;
+
+    int m_kills;
+    int m_eats;
     
     sf::Vector2i m_position;
     int m_rotation;

@@ -166,6 +166,25 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
     return false;
 }
 
+Color FieldView::getBotColor(const Cell& cell) const noexcept {
+    if (cell.hasBot()) {
+        switch (m_mode) {
+        case Mode::FOOD:
+            if (cell.getBot().getAge() == 0) return Color::Black;
+            return Color(min(static_cast<double>(cell.getBot().getEats()) 
+                             / static_cast<double>(cell.getBot().getAge()), 1.) * 255, 
+                         min(static_cast<double>(cell.getBot().getEats()) 
+                             / static_cast<double>(cell.getBot().getAge()), 1.) * 255, 0);
+            break;
+        case Mode::AGE:
+            return Color(cell.getBot().getAge(), cell.getBot().getAge(), cell.getBot().getAge());
+        default:
+            return cell.getBot().getColor();
+            break;
+        }
+    } else return Color::Transparent;
+}
+
 void FieldView::updateField() noexcept {
     if (!m_field) return;
 
@@ -661,7 +680,7 @@ void FieldView::showGui() noexcept {
     if (m_field) {
         with_Window("View") {
             int mode = static_cast<int>(m_mode);
-            if (Combo("View mode", &mode, "Landscape\0Bots\0")) {
+            if (Combo("View mode", &mode, "Landscape\0Bots\0Food type\0Age\0")) {
                 m_mode = static_cast<Mode>(mode);
             }
 

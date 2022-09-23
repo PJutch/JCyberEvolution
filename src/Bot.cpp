@@ -40,7 +40,7 @@ using std::uniform_int_distribution;
 Bot::Bot() noexcept : Bot({0, 0}, 0, 0.0, nullptr) {}
 
 Bot::Bot(Vector2i position, int rotation, double energy, shared_ptr<Species> species) noexcept : 
-        m_instructionPointer{0}, m_age{0}, m_energy{energy},  
+        m_instructionPointer{0}, m_age{0}, m_energy{energy},  m_kills{0}, m_eats{0},
         m_position{position}, m_directionShape{{0.1f, 0.3f}} {
     setSpecies(species);
 
@@ -128,6 +128,7 @@ Decision Bot::makeDecision(Field& field) noexcept {
             m_energy += eaten;
             decision.organic += field.getEatenOrganicRatio() * (eaten / field.getEatEfficiency() - eaten);
 
+            ++ m_eats;
             if (field.isEatLong()) {
                 decision.action = Decision::Action::SKIP;
                 run = false;
