@@ -60,10 +60,10 @@ Field::Field(int width, int height, uint64_t seed) :
         m_width{width}, m_height{height}, m_topology{Topology::TORUS}, m_cells{width * height}, 
         m_epoch{0},  m_lifetime{256}, m_mutationChance{0.001},
         m_energyGain{10.0}, m_multiplyCost{20.0}, m_startEnergy{10.0}, m_killGainRatio{0.5},
-        m_eatEfficiency{0.5}, m_grassGrowth{0.03}, m_grassSpread{0.1}, m_eatLong{true},
+        m_eatEfficiency{0.5}, m_grassGrowth{0.05}, m_grassSpread{0.1}, m_eatLong{true},
         m_usedEnergyOrganicRatio{0.5}, m_eatenOrganicRatio{0.5}, m_killOrganicRatio{0.5}, 
         m_dieOrganicRatio{0.25}, m_organicGrassRatio{4.0}, m_organicSpread{0.1}, 
-        m_organicSpoil{0.01}, m_grassDeath{0.05}, m_deadGrassOrganicRatio{0.5},
+        m_organicSpoil{0.05}, m_grassDeath{0.05}, m_deadGrassOrganicRatio{0.5},
         m_view{nullptr}, m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);
@@ -424,8 +424,8 @@ void Field::update() noexcept {
                 newGrass[y * m_width + x] += m_grassSpread * at(xCurrent, yCurrent).getGrass();
                 newGrass[index] -= m_grassSpread * at(xCurrent, yCurrent).getGrass();
 
-                /* newOrganic[y * m_width + x] += 0.1 * at(xCurrent, yCurrent).getOrganic();
-                newOrganic[index] -= 0.1 * at(xCurrent, yCurrent).getOrganic(); */
+                newOrganic[y * m_width + x] += m_organicSpread * at(xCurrent, yCurrent).getOrganic();
+                newOrganic[index] -= m_organicSpread * at(xCurrent, yCurrent).getOrganic();
     }
 
     for (int y = 0; y < m_height; ++ y)
@@ -436,6 +436,7 @@ void Field::update() noexcept {
 
             int index = y * m_width + x;
             at(x, y).setGrass(clamp(newGrass[index], 0.0, 255.0));
+            at(x, y).setOrganic(clamp(newOrganic[index], 0.0, 255.0));
     }
 
     ++ m_epoch;
