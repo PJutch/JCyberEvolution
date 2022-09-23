@@ -19,6 +19,15 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <imgui_sugar.hpp>
 #include <dirent.h>
 #include <ImGuiFileDialog.h>
+using ImGui::SliderFloat;
+using ImGui::SliderInt;
+using ImGui::Checkbox;
+using ImGui::Button;
+using ImGui::Text;
+using ImGui::PlotLines;
+using ImGui::BeginDisabled;
+using ImGui::EndDisabled;
+using ImGui::Combo;
 
 #include <SFML/Graphics.hpp>
 using sf::FloatRect;
@@ -48,6 +57,9 @@ using std::ofstream;
 
 #include <array>
 using std::array;
+
+#include <deque>
+using std::deque;
 
 #include <string>
 using std::string;
@@ -390,7 +402,7 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
 
 void FieldView::showSelectBotTypeGui() noexcept {
     ImGui::BeginDisabled(m_tool != Tool::PLACE_BOT);
-    ImGui::Text("Select bot type");
+    Text("Select bot type");
     with_ListBox ("##Select bot type", 
             ImVec2(-FLT_MIN, 5.25f * ImGui::GetTextLineHeightWithSpacing())) {
         const bool is_selected = (m_selectedFile == -1);
@@ -436,12 +448,12 @@ void FieldView::showSelectBotTypeGui() noexcept {
 }
 
 void FieldView::showSaveBotGui() noexcept {
-    ImGui::BeginDisabled(m_selectedBot == Vector2i(-1, -1));
-    if (ImGui::Button("Save selected bot")) {
+    BeginDisabled(m_selectedBot == Vector2i(-1, -1));
+    if (Button("Save selected bot")) {
         ImGuiFileDialog::Instance()->OpenDialog("Save bot", "Choose File", 
             ".bot", ".", "", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
     }
-    ImGui::EndDisabled();
+    EndDisabled();
 
     if (ImGuiFileDialog::Instance()->Display("Save bot")) {
         if (ImGuiFileDialog::Instance()->IsOk()) {
@@ -461,12 +473,12 @@ void FieldView::showTopologyCombo() noexcept {
     int topology = static_cast<int>(m_field->getTopology());
 
     if (m_field->getWidth() == m_field->getHeight()) {
-        ImGui::Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
+        Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
                                             "Sphere left\0Sphere right\0Cone left top\0"
                                             "Cone right top\0Cone left bottom\0"
                                             "Cone right bottom\0");
     } else {
-        ImGui::Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
+        Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
     }
     m_field->setTopology(static_cast<Field::Topology>(topology));
 }
@@ -475,13 +487,13 @@ void FieldView::showNewFieldTopologyCombo() noexcept {
     int topology = static_cast<int>(m_fieldTopology);
     
     if (m_fieldWidth == m_fieldHeight) {
-        ImGui::Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
+        Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
                                             "Sphere left\0Sphere right\0Cone left top\0"
                                             "Cone right top\0Cone left bottom\0"
                                             "Cone right bottom\0");
     } else {
         if (topology > 3) topology = 0;
-        ImGui::Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
+        Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
     }
     m_fieldTopology = static_cast<Field::Topology>(topology);
 }
@@ -519,21 +531,21 @@ void FieldView::setField(std::unique_ptr<Field>&& field) noexcept {
 
 void FieldView::showToolsWindow() noexcept {
     with_Window("Tools") {
-    ImGui::SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
-    if (ImGui::Button("Random fill")) {
+    SliderFloat("Fill density", &m_fillDensity, 0.f, 1.f);
+    if (Button("Random fill")) {
         m_selectedBot = {-1, -1};
         m_field->randomFill(m_fillDensity);
         fill(m_populationHistory, m_field->computePopulation());
     }
 
-    if (ImGui::Button("Clear")) {
+    if (Button("Clear")) {
         m_selectedBot = {-1, -1};
         m_field->clear();
         fill(m_populationHistory, 0);
     }
 
     int tool = static_cast<int>(m_tool);
-    ImGui::Combo("Click tool", &tool, "Select bot\0Delete bot\0Place bot\0");
+    Combo("Click tool", &tool, "Select bot\0Delete bot\0Place bot\0");
     m_tool = static_cast<Tool>(tool);
     if (m_tool != Tool::SELECT_BOT) m_selectedBot = {-1, -1};
 
@@ -545,48 +557,53 @@ void FieldView::showToolsWindow() noexcept {
 void FieldView::showLifeCycleWindow() noexcept {
     with_Window("Life cycle") {
         int lifetime = m_field->getLifetime();
-        if (ImGui::SliderInt("Lifetime", &lifetime, 0, 1024)) {
+        if (SliderInt("Lifetime", &lifetime, 0, 1024)) {
             m_field->setLifetime(lifetime);
         }
 
         float mutationChance = m_field->getMutationChance();
-        if (ImGui::SliderFloat("Mutation chance", &mutationChance, 0, 1, 
+        if (SliderFloat("Mutation chance", &mutationChance, 0, 1, 
                                 "%.3f", ImGuiSliderFlags_Logarithmic)) {
             m_field->setMutationChance(mutationChance);
         }
 
         float energyGain = m_field->getEnergyGain();
-        if (ImGui::SliderFloat("Energy gain", &energyGain, 0.f, 100.f)) {
+        if (SliderFloat("Energy gain", &energyGain, 0.f, 100.f)) {
             m_field->setEnergyGain(energyGain);
         }
 
         float multiplyCost = m_field->getMultiplyCost();
-        if (ImGui::SliderFloat("Multiply cost", &multiplyCost, 1.f, 100.f)) {
+        if (SliderFloat("Multiply cost", &multiplyCost, 1.f, 100.f)) {
             m_field->setMultiplyCost(multiplyCost);
         }
 
         float startEnergy = m_field->getStartEnergy();
-        if (ImGui::SliderFloat("Start energy", &startEnergy, 1.f, 100.f)) {
+        if (SliderFloat("Start energy", &startEnergy, 1.f, 100.f)) {
             m_field->setStartEnergy(startEnergy);
         }
 
         float killGainRatio = m_field->getKillGainRatio();
-        if (ImGui::SliderFloat("Kill gain ratio", &killGainRatio, 0.f, 2.f)) {
+        if (SliderFloat("Kill gain ratio", &killGainRatio, 0.f, 2.f)) {
             m_field->setKillGainRatio(killGainRatio);
         }
 
         float eatEfficiency = m_field->getEatEfficiency();
-        if (ImGui::SliderFloat("Eat efficiency", &eatEfficiency, 0.f, 2.f)) {
+        if (SliderFloat("Eat efficiency", &eatEfficiency, 0.f, 2.f)) {
             m_field->setEatEfficiency(eatEfficiency);
         }
 
+        bool eatLong = m_field->isEatLong();
+        if (Checkbox("Eat action is long", &eatLong)) {
+             m_field->setEatLong(eatLong);
+        }
+
         float grassGrowth = m_field->getGrassGrowth();
-        if (ImGui::SliderFloat("Grass growth", &grassGrowth, 0.f, 100.f)) {
+        if (SliderFloat("Grass growth", &grassGrowth, 0.f, 100.f)) {
             m_field->setGrassGrowth(grassGrowth);
         }
 
         float grassSpread = m_field->getGrassSpread();
-        if (ImGui::SliderFloat("Grass spread", &grassSpread, 0.f, 0.125f)) {
+        if (SliderFloat("Grass spread", &grassSpread, 0.f, 0.125f)) {
             m_field->setGrassSpread(grassSpread);
         }
     }
@@ -595,19 +612,19 @@ void FieldView::showLifeCycleWindow() noexcept {
 void FieldView::showGui() noexcept {
     if (m_field) {
         with_Window("View") {
-            if (ImGui::Button("To center")) {
+            if (Button("To center")) {
                 m_view.setCenter(m_field->getSize() / 2.f);
             }
-            ImGui::SliderFloat("Simulation speed", &m_simulationSpeed, 0.f, 16.f);
+            SliderFloat("Simulation speed", &m_simulationSpeed, 0.f, 16.f);
         }
 
         showToolsWindow();
 
         with_Window("Statistics") {
-            ImGui::Text("Epoch: %i", m_field->getEpoch());
+            Text("Epoch: %i", m_field->getEpoch());
 
-            ImGui::Text("Population: %i", m_populationHistory.back());
-            ImGui::PlotLines("##Population", containerGetter<std::deque<int>>, &m_populationHistory, 
+            Text("Population: %i", m_populationHistory.back());
+            PlotLines("##Population", containerGetter<deque<int>>, &m_populationHistory, 
                             POPULATION_HISTORY_SIZE, 0, NULL, 
                             0.f, m_field->getWidth() * m_field->getHeight(), ImVec2(0, 80.0f));
         }
@@ -616,14 +633,14 @@ void FieldView::showGui() noexcept {
 
         with_Window("Field") {
             showTopologyCombo();
-            if (ImGui::Button("New")) m_field.reset();
+            if (Button("New")) m_field.reset();
         }
     } else {
         with_Window("New field") {
-            ImGui::SliderInt("Width", &m_fieldWidth, 16, 1024);
-            ImGui::SliderInt("Height", &m_fieldHeight, 16, 1024);
+            SliderInt("Width", &m_fieldWidth, 16, 1024);
+            SliderInt("Height", &m_fieldHeight, 16, 1024);
             showNewFieldTopologyCombo();
-            if (ImGui::Button("Create")) {
+            if (Button("Create")) {
                 setField(make_unique<Field>(m_fieldWidth, m_fieldHeight, m_randomEngine()));
                 m_field->setTopology(m_fieldTopology);
             }
