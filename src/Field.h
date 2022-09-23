@@ -140,6 +140,14 @@ public:
         m_grassSpread = grassSpread;
     }
 
+    bool isEatLong() const noexcept {
+        return m_eatLong;
+    }
+
+    void setEatLong(bool eatLong) noexcept {
+        m_eatLong = eatLong;
+    }
+
     Topology getTopology() const noexcept {
         return m_topology;
     }
@@ -218,6 +226,7 @@ private:
     double m_eatEfficiency;
     double m_grassGrowth;
     double m_grassSpread;
+    bool m_eatLong;
 
     FieldView* m_view;
 

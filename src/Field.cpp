@@ -60,7 +60,7 @@ Field::Field(int width, int height, uint64_t seed) :
         m_width{width}, m_height{height}, m_topology{Topology::TORUS}, m_cells{width * height}, 
         m_epoch{0},  m_lifetime{256}, m_mutationChance{0.001},
         m_energyGain{10.0}, m_multiplyCost{20.0}, m_startEnergy{10.0}, m_killGainRatio{0.5},
-        m_eatEfficiency{0.5}, m_grassGrowth{5.0}, m_grassSpread{0.1},
+        m_eatEfficiency{0.5}, m_grassGrowth{5.0}, m_grassSpread{0.1}, m_eatLong{true},
         m_view{nullptr}, m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);

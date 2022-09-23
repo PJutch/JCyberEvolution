@@ -126,6 +126,11 @@ Decision Bot::makeDecision(Field& field) noexcept {
                                field.getEnergyGain());
             cell.setGrass(cell.getGrass() - eaten / field.getEatEfficiency());
             m_energy += eaten;
+
+            if (field.isEatLong()) {
+                decision = {Decision::Action::SKIP, -1};
+                run = false;
+            }
             ++ m_instructionPointer;
             break;
         }
