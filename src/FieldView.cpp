@@ -167,6 +167,19 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
     return false;
 }
 
+void FieldView::updateField() noexcept {
+    if (!m_field) return;
+
+    m_simulationStepRest += getSimulationSpeed();
+    while (m_simulationStepRest >= 1.f) {
+        m_field->update();
+        m_populationHistory.pop_front();
+        m_populationHistory.push_back(m_field->computePopulation());
+
+        -- m_simulationStepRest;
+    }
+}
+
 Color FieldView::getBotColor(const Cell& cell) const noexcept {
     if (cell.hasBot()) {
         switch (m_mode) {
@@ -181,24 +194,15 @@ Color FieldView::getBotColor(const Cell& cell) const noexcept {
             Uint8 brightness = cell.getBot().getAge() * 255 / m_field->getLifetime();
             return Color(brightness, brightness, brightness);
         }
+        case Mode::ENERGY: {
+            Uint8 brightness = cell.getBot().getEnergy();
+            return Color(brightness, brightness, brightness);
+        }
         default:
             return cell.getBot().getColor();
             break;
         }
     } else return Color::Transparent;
-}
-
-void FieldView::updateField() noexcept {
-    if (!m_field) return;
-
-    m_simulationStepRest += getSimulationSpeed();
-    while (m_simulationStepRest >= 1.f) {
-        m_field->update();
-        m_populationHistory.pop_front();
-        m_populationHistory.push_back(m_field->computePopulation());
-
-        -- m_simulationStepRest;
-    }
 }
 
 void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
@@ -683,7 +687,7 @@ void FieldView::showGui() noexcept {
     if (m_field) {
         with_Window("View") {
             int mode = static_cast<int>(m_mode);
-            if (Combo("View mode", &mode, "Landscape\0Bots\0Food type\0Age\0")) {
+            if (Combo("View mode", &mode, "Landscape\0Bots\0Food type\0Age\0Energy\0")) {
                 m_mode = static_cast<Mode>(mode);
             }
 

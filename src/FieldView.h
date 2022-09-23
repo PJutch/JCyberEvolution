@@ -41,6 +41,7 @@ public:
         BOTS,
         FOOD,
         AGE,
+        ENERGY,
     };
 
     FieldView(sf::Vector2f screenSize, uint64_t seed);
