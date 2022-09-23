@@ -27,7 +27,7 @@ public:
     Cell(sf::Vector2f position) noexcept;
 
     sf::Color getColor() const noexcept {
-        return sf::Color(0, std::min(m_grass, 255.0), 0);
+        return sf::Color(std::min(m_organic, 255.0), std::min(m_grass, 255.0), 0);
     }
 
     bool hasBot() const noexcept {
@@ -83,6 +83,14 @@ public:
         m_grass = grass;
     }
 
+    double getOrganic() const noexcept {
+        return m_organic;
+    }
+
+    void setOrganic(double organic) noexcept {
+        m_organic = organic;
+    }
+
     bool isAlive() const noexcept {
         return hasBot() && !m_shouldDie;
     }
@@ -91,6 +99,7 @@ private:
     bool m_shouldDie;
 
     double m_grass;
+    double m_organic;
 
     sf::Vector2i m_position;
 };

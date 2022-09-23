@@ -24,4 +24,4 @@ using sf::FloatRect;
 #include <memory>
 
 Cell::Cell(Vector2f position) noexcept : 
-        m_bot{nullptr}, m_shouldDie{false}, m_grass{0.0}, m_position{position} {}
+    m_bot{nullptr}, m_shouldDie{false}, m_grass{0.0}, m_organic{0.0}, m_position{position} {}

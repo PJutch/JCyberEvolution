@@ -148,6 +148,46 @@ public:
         m_eatLong = eatLong;
     }
 
+    double getUsedEnergyOrganicRatio() const noexcept {
+        return m_usedEnergyOrganicRatio;
+    }
+
+    void setUsedEnergyOrganicRatio(double usedEnergyOrganicRatio) noexcept {
+        m_usedEnergyOrganicRatio = usedEnergyOrganicRatio;
+    }
+
+    double getEatenOrganicRatio() const noexcept {
+        return m_eatenOrganicRatio;
+    }
+
+    void setEatenOrganicRatio(double eatenOrganicRatio) noexcept {
+        m_eatenOrganicRatio = eatenOrganicRatio;
+    }
+
+    double getKillOrganicRatio() const noexcept {
+        return m_killOrganicRatio;
+    }
+
+    void setKillOrganicRatio(double killOrganicRatio) noexcept {
+        m_killOrganicRatio = killOrganicRatio;
+    }
+
+    double getOrganicGrassRatio() const noexcept {
+        return m_organicGrassRatio;
+    }
+
+    void setOrganicGrassRatio(double organicGrassRatio) noexcept {
+        m_organicGrassRatio = organicGrassRatio;
+    }
+
+    double getDieOrganicRatio() const noexcept {
+        return m_dieOrganicRatio;
+    }
+
+    void setDieOrganicRatio(double dieOrganicRatio) noexcept {
+        m_dieOrganicRatio = dieOrganicRatio;
+    }
+
     Topology getTopology() const noexcept {
         return m_topology;
     }
@@ -227,6 +267,15 @@ private:
     double m_grassGrowth;
     double m_grassSpread;
     bool m_eatLong;
+    double m_usedEnergyOrganicRatio;
+    double m_eatenOrganicRatio;
+    double m_killOrganicRatio;
+    double m_dieOrganicRatio;
+    double m_organicGrassRatio;
+    double m_organicSpread;
+    double m_organicSpoil;
+    double m_grassDeath;
+    double m_deadGrassOrganicRatio;
 
     FieldView* m_view;
 

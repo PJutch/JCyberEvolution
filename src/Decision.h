@@ -15,8 +15,6 @@ If not, see <https://www.gnu.org/licenses/>. */
 #ifndef DECISION_H_
 #define DECISION_H_
 
-#include <cstdint>
-
 struct Decision {
     enum class Action {
         SKIP = 0,
@@ -28,6 +26,7 @@ struct Decision {
 
     Action action;
     int direction;
+    double organic;
 };
 
 #endif
