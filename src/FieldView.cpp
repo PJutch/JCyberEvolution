@@ -45,6 +45,7 @@ using sf::Triangles;
 using sf::Keyboard;
 using sf::Event;
 using sf::Time;
+using sf::Uint8;
 
 #include <algorithm>
 using std::clamp;
@@ -171,13 +172,15 @@ Color FieldView::getBotColor(const Cell& cell) const noexcept {
         switch (m_mode) {
         case Mode::FOOD:
             if (cell.getBot().getAge() == 0) return Color::Black;
-            return Color(min(static_cast<double>(cell.getBot().getEats()) 
+            return Color(min(static_cast<double>(cell.getBot().getKills()) 
                              / static_cast<double>(cell.getBot().getAge()), 1.) * 255, 
                          min(static_cast<double>(cell.getBot().getEats()) 
                              / static_cast<double>(cell.getBot().getAge()), 1.) * 255, 0);
             break;
-        case Mode::AGE:
-            return Color(cell.getBot().getAge(), cell.getBot().getAge(), cell.getBot().getAge());
+        case Mode::AGE: {
+            Uint8 brightness = cell.getBot().getAge() * 255 / m_field->getLifetime();
+            return Color(brightness, brightness, brightness);
+        }
         default:
             return cell.getBot().getColor();
             break;
