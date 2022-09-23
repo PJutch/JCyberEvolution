@@ -26,13 +26,19 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include <deque>
 #include <string>
 #include <utility>
+#include <algorithm>
 
 class FieldView : public sf::Drawable {
 public:
-    enum class Tool : int {
+    enum class Tool {
         SELECT_BOT = 0,
         DELETE_BOT,
         PLACE_BOT,
+    };
+
+    enum class Mode {
+        LANDSCAPE = 0,
+        BOTS
     };
 
     FieldView(sf::Vector2f screenSize, uint64_t seed);
@@ -111,6 +117,8 @@ private:
     sf::Vector2i m_selectedBot;
     sf::RectangleShape m_selectionShape;
 
+    Mode m_mode;
+
     std::deque<std::pair<std::string, std::string>> m_recentFiles;
     int m_selectedFile;
     std::unique_ptr<Bot> m_loadedBot;
@@ -151,6 +159,15 @@ private:
             return true;
         }
         return false;
+    }
+
+    sf::Color getCellColor(const Cell& cell) const noexcept {
+        return sf::Color(std::min(cell.getOrganic(), 255.0), std::min(cell.getGrass(), 255.0), 0);
+    }
+
+    sf::Color getBotColor(const Cell& cell) const noexcept {
+        if (cell.hasBot()) return cell.getBot().getColor();
+        return sf::Color::Transparent;
     }
 
     void drawField(sf::RenderTarget& target, sf::RenderStates states) const noexcept;

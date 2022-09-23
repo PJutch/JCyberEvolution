@@ -89,6 +89,7 @@ FieldView::FieldView(Vector2f screenSize, uint64_t seed) :
         m_screenSize{screenSize}, m_zoom{1.0f}, m_shouldDrawBots{true}, 
         m_fillDensity{0.5f}, m_simulationSpeed{1.f}, m_simulationStepRest{0.f}, m_paused{true}, 
         m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
+        m_mode{Mode::BOTS},
         m_recentFiles{}, m_selectedFile{-1}, m_loadedBot{nullptr}, 
         m_populationHistory(128, 0),
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
@@ -200,23 +201,19 @@ void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
         for (int y = 0; y < m_field->getHeight(); ++ y) {
             int offset = y * m_field->getWidth() * 6 + x * 6;
             for (int i = 0; i < 6; ++ i) {
-                if (0.25f * getScreenToViewRatio() >= 1.f) {
-                    m_cellsVertices[offset + i].color = m_field->at(x, y).getColor();
-                    if (m_field->at(x, y).hasBot()) {
-                        m_botsVertices[offset + i].color = m_field->at(x, y).getBot().getColor();
-                    } else {
-                        m_botsVertices[offset + i].color = Color::Transparent;
-                    }
+                if (0.25f * getScreenToViewRatio() >= 1.f || m_mode == Mode::LANDSCAPE) {
+                    m_cellsVertices[offset + i].color = getCellColor(m_field->at(x, y));
+                    m_botsVertices[offset + i].color = getBotColor(m_field->at(x, y));
                 } else {
                     if (m_field->at(x, y).hasBot()) {
                         if (m_selectedBot == Vector2i{x, y}) {
                             m_cellsVertices[offset + i].color = Color::Red;
                         } else {
                             m_cellsVertices[offset + i].color 
-                                = m_field->at(x, y).getBot().getColor();
+                                = getBotColor(m_field->at(x, y));
                         }
                     } else {
-                        m_cellsVertices[offset + i].color =m_field->at(x, y).getColor();
+                        m_cellsVertices[offset + i].color = getCellColor(m_field->at(x, y));
                     }
                 }
             }
@@ -225,7 +222,7 @@ void FieldView::update(bool keyboardAvailable, Time elapsedTime) noexcept {
 
 void FieldView::drawField(RenderTarget& target, RenderStates states) const noexcept {
     target.draw(m_cellsVertices, states);
-    if (0.25f * getScreenToViewRatio() >= 1.f) {
+    if (0.25f * getScreenToViewRatio() >= 1.f && m_mode != Mode::LANDSCAPE) {
         target.draw(m_botsVertices, states);
 
         for (Cell& cell : *m_field) 
@@ -663,6 +660,11 @@ void FieldView::showLifeCycleWindow() noexcept {
 void FieldView::showGui() noexcept {
     if (m_field) {
         with_Window("View") {
+            int mode = static_cast<int>(m_mode);
+            if (Combo("View mode", &mode, "Landscape\0Bots\0")) {
+                m_mode = static_cast<Mode>(mode);
+            }
+
             if (Button("To center")) {
                 m_view.setCenter(m_field->getSize() / 2.f);
             }

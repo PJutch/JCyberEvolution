@@ -26,10 +26,6 @@ public:
     Cell() noexcept = default;
     Cell(sf::Vector2f position) noexcept;
 
-    sf::Color getColor() const noexcept {
-        return sf::Color(std::min(m_organic, 255.0), std::min(m_grass, 255.0), 0);
-    }
-
     bool hasBot() const noexcept {
         return static_cast<bool>(m_bot);
     }
