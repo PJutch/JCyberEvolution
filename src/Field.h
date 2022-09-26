@@ -25,6 +25,28 @@ class FieldView;
 
 class Field {
 public:
+    struct Settings {
+        int lifetime = 256;
+        float mutationChance = 0.001;
+        float energyGain = 10.0;
+        float multiplyCost = 20.0;
+        float startEnergy = 10.0;
+        float killGainRatio = 0.5;
+        float eatEfficiency = 0.5;
+        float grassGrowth = 0.05;
+        float grassSpread = 0.1;
+        bool eatLong = true;
+        float usedEnergyOrganicRatio = 0.5;
+        float eatenOrganicRatio = 0.5;
+        float killOrganicRatio = 0.5;
+        float diedOrganicRatio = 0.25;
+        float organicGrassRatio = 5.;
+        float organicSpread = 0.1;
+        float organicSpoil = 0.05;
+        float grassDeath = 0.05;
+        float deadGrassOrganicRatio = 0.5;
+    };
+
     enum class Topology {
         TORUS = 0,
         CYLINDER_X,
@@ -68,156 +90,12 @@ public:
 
     int computePopulation() const noexcept;
 
-    int getLifetime() const noexcept {
-        return m_lifetime;
+    Settings& getSettings() noexcept {
+        return m_settings;
     }
 
-    void setLifetime(int lifetime) noexcept {
-        m_lifetime = lifetime;
-    }
-
-    double getMutationChance() const noexcept {
-        return m_mutationChance;
-    }
-
-    void setMutationChance(double mutationChance) noexcept {
-        m_mutationChance = mutationChance;
-    }
-
-    double getEnergyGain() const noexcept {
-        return m_energyGain;
-    }
-
-    void setEnergyGain(double energyGain) noexcept {
-        m_energyGain = energyGain;
-    }
-
-    double getMultiplyCost() const noexcept {
-        return m_multiplyCost;
-    }
-
-    void setMultiplyCost(double multiplyCost) noexcept {
-        m_multiplyCost = multiplyCost;
-    }
-
-    double getStartEnergy() const noexcept {
-        return m_startEnergy;
-    }
-
-    void setStartEnergy(double startEnergy) noexcept {
-        m_startEnergy = startEnergy;
-    }
-
-    double getKillGainRatio() const noexcept {
-        return m_killGainRatio;
-    }
-
-    void setKillGainRatio(double killGainRatio) noexcept {
-        m_killGainRatio = killGainRatio;
-    }
-
-    double getEatEfficiency() const noexcept {
-        return m_eatEfficiency;
-    }
-
-    void setEatEfficiency(double eatEfficiency) noexcept {
-        m_eatEfficiency = eatEfficiency;
-    }
-
-    double getGrassGrowth() const noexcept {
-        return m_grassGrowth;
-    }
-
-    void setGrassGrowth(double grassGrowth) noexcept {
-        m_grassGrowth = grassGrowth;
-    }
-
-    double getGrassSpread() const noexcept {
-        return m_grassSpread;
-    }
-
-    void setGrassSpread(double grassSpread) noexcept {
-        m_grassSpread = grassSpread;
-    }
-
-    bool isEatLong() const noexcept {
-        return m_eatLong;
-    }
-
-    void setEatLong(bool eatLong) noexcept {
-        m_eatLong = eatLong;
-    }
-
-    double getUsedEnergyOrganicRatio() const noexcept {
-        return m_usedEnergyOrganicRatio;
-    }
-
-    void setUsedEnergyOrganicRatio(double usedEnergyOrganicRatio) noexcept {
-        m_usedEnergyOrganicRatio = usedEnergyOrganicRatio;
-    }
-
-    double getEatenOrganicRatio() const noexcept {
-        return m_eatenOrganicRatio;
-    }
-
-    void setEatenOrganicRatio(double eatenOrganicRatio) noexcept {
-        m_eatenOrganicRatio = eatenOrganicRatio;
-    }
-
-    double getKillOrganicRatio() const noexcept {
-        return m_killOrganicRatio;
-    }
-
-    void setKillOrganicRatio(double killOrganicRatio) noexcept {
-        m_killOrganicRatio = killOrganicRatio;
-    }
-
-    double getOrganicGrassRatio() const noexcept {
-        return m_organicGrassRatio;
-    }
-
-    void setOrganicGrassRatio(double organicGrassRatio) noexcept {
-        m_organicGrassRatio = organicGrassRatio;
-    }
-
-    double getDiedOrganicRatio() const noexcept {
-        return m_diedOrganicRatio;
-    }
-
-    void setDiedOrganicRatio(double diedOrganicRatio) noexcept {
-        m_diedOrganicRatio = diedOrganicRatio;
-    }
-
-    double getOrganicSpread() const noexcept {
-        return m_organicSpread;
-    }
-
-    void setOrganicSpread(double organicSpread) noexcept {
-        m_organicSpread = organicSpread;
-    }
-
-    double getOrganicSpoil() const noexcept {
-        return m_organicSpoil;
-    }
-
-    void setOrganicSpoil(double organicSpoil) noexcept {
-        m_organicSpoil = organicSpoil;
-    }
-
-    double getGrassDeath() const noexcept {
-        return m_grassDeath;
-    }
-
-    void setGrassDeath(double grassDeath) noexcept {
-        m_grassDeath = grassDeath;
-    }
-
-    double getDeadGrassOrganicRatio() const noexcept {
-        return m_deadGrassOrganicRatio;
-    }
-
-    void setDeadGrassOrganicRatio(double deadGrassOrganicRatio) noexcept {
-        m_deadGrassOrganicRatio = deadGrassOrganicRatio;
+    const Settings& getSettings() const noexcept {
+        return m_settings;
     }
 
     Topology getTopology() const noexcept {
@@ -289,25 +167,7 @@ private:
     std::vector<Cell> m_cells;
     int m_epoch;
 
-    int m_lifetime;
-    double m_mutationChance;
-    double m_energyGain;
-    double m_multiplyCost;
-    double m_startEnergy;
-    double m_killGainRatio;
-    double m_eatEfficiency;
-    double m_grassGrowth;
-    double m_grassSpread;
-    bool m_eatLong;
-    double m_usedEnergyOrganicRatio;
-    double m_eatenOrganicRatio;
-    double m_killOrganicRatio;
-    double m_diedOrganicRatio;
-    double m_organicGrassRatio;
-    double m_organicSpread;
-    double m_organicSpoil;
-    double m_grassDeath;
-    double m_deadGrassOrganicRatio;
+    Settings m_settings;
 
     FieldView* m_view;
 

@@ -93,7 +93,7 @@ bool Bot::decodeCoords(uint16_t code, int& x, int& y,
 }
 
 Decision Bot::makeDecision(Field& field) noexcept {
-    if (++ m_age > field.getLifetime()) return {Decision::Action::DIE, -1};
+    if (++ m_age > field.getSettings().lifetime) return {Decision::Action::DIE, -1};
 
     Decision decision{Decision::Action::SKIP, -1, 0.0};
 
@@ -122,14 +122,15 @@ Decision Bot::makeDecision(Field& field) noexcept {
                 = decodeAddress((*m_species)[(m_instructionPointer + 1) % 256], randomEngine);
             break;
         case Instruction::EAT: {
-            double eaten = min(field.getEatEfficiency() * cell.getGrass(), 
-                               field.getEnergyGain());
-            cell.setGrass(cell.getGrass() - eaten / field.getEatEfficiency());
+            double eaten = min(field.getSettings().eatEfficiency * cell.getGrass(), 
+                               static_cast<double>(field.getSettings().energyGain));
+            cell.setGrass(cell.getGrass() - eaten / field.getSettings().eatEfficiency);
             m_energy += eaten;
-            decision.organic += field.getEatenOrganicRatio() * (eaten / field.getEatEfficiency() - eaten);
+            decision.organic += field.getSettings().eatenOrganicRatio 
+                                * (eaten / field.getSettings().eatEfficiency - eaten);
 
             ++ m_eats;
-            if (field.isEatLong()) {
+            if (field.getSettings().eatLong) {
                 decision.action = Decision::Action::SKIP;
                 run = false;
             }
@@ -152,8 +153,9 @@ Decision Bot::makeDecision(Field& field) noexcept {
                                                 randomEngine);
                 
             run = false;
-            m_energy -= field.getMultiplyCost();
-            decision.organic += field.getUsedEnergyOrganicRatio() * field.getMultiplyCost();
+            m_energy -= field.getSettings().multiplyCost;
+            decision.organic += field.getSettings().usedEnergyOrganicRatio 
+                                * field.getSettings().multiplyCost;
             m_instructionPointer += 2;
             break;
         case Instruction::ATTACK:
@@ -209,7 +211,7 @@ Decision Bot::makeDecision(Field& field) noexcept {
         }
 
         -- m_energy;
-        decision.organic += field.getUsedEnergyOrganicRatio();
+        decision.organic += field.getSettings().usedEnergyOrganicRatio;
 
         m_instructionPointer %= 256;
         if (m_instructionPointer < 0) m_instructionPointer += 256;

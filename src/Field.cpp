@@ -58,12 +58,7 @@ using std::abs;
 
 Field::Field(int width, int height, uint64_t seed) : 
         m_width{width}, m_height{height}, m_topology{Topology::TORUS}, m_cells{width * height}, 
-        m_epoch{0},  m_lifetime{256}, m_mutationChance{0.001},
-        m_energyGain{10.0}, m_multiplyCost{20.0}, m_startEnergy{10.0}, m_killGainRatio{0.5},
-        m_eatEfficiency{0.5}, m_grassGrowth{0.05}, m_grassSpread{0.1}, m_eatLong{true},
-        m_usedEnergyOrganicRatio{0.5}, m_eatenOrganicRatio{0.5}, m_killOrganicRatio{0.5}, 
-        m_diedOrganicRatio{0.25}, m_organicGrassRatio{5.0}, m_organicSpread{0.1}, 
-        m_organicSpoil{0.05}, m_grassDeath{0.05}, m_deadGrassOrganicRatio{0.5},
+        m_epoch{0},  m_settings{},
         m_view{nullptr}, m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
     m_borderShape.setFillColor(Color::Transparent);
@@ -362,17 +357,17 @@ void Field::update() noexcept {
                     if (!at(x, y).hasBot()) {
                         shared_ptr<Species> parent = bot.getSpecies();
                         shared_ptr<Species> offspring = parent->createMutant(
-                            m_randomEngine, m_epoch, m_mutationChance);
+                            m_randomEngine, m_epoch, m_settings.mutationChance);
 
                         at(x, y).createBot((decision.direction + rotationDelta) % 8, 
-                            m_startEnergy, offspring);
+                            m_settings.startEnergy, offspring);
                     }
                     break;
                 case Decision::Action::ATTACK:
                     if (at(x, y).isAlive()) {
                         bot.setEnergy(bot.getEnergy()
-                            + m_killGainRatio * at(x, y).getBot().getEnergy());
-                        decision.organic += m_killOrganicRatio * at(x, y).getBot().getEnergy();
+                            + m_settings.killGainRatio * at(x, y).getBot().getEnergy());
+                        decision.organic += m_settings.killOrganicRatio * at(x, y).getBot().getEnergy();
                         at(x, y).setShouldDie(true);
                         bot.handleKill();
                     }
@@ -383,22 +378,24 @@ void Field::update() noexcept {
             if (decisions[y * m_width + x].action == Decision::Action::DIE 
                     && at(x, y).isAlive()) {
                 at(x, y).setShouldDie(true);
-                decisions[y * m_width + x].organic += m_diedOrganicRatio * at(x, y).getBot().getEnergy();
+                decisions[y * m_width + x].organic += m_settings.diedOrganicRatio 
+                                                        * at(x, y).getBot().getEnergy();
             }
     }
 
     for (int y = 0; y < m_height; ++ y)
         for (int x = 0; x < m_width; ++ x) {
             int index = y * m_width + x;
-            at(x, y).setOrganic((1 - m_organicSpoil) * at(x, y).getOrganic() + decisions[index].organic);
+            at(x, y).setOrganic((1 - m_settings.organicSpoil) * at(x, y).getOrganic()
+                                 + decisions[index].organic);
 
-            at(x, y).setGrass((1 - m_grassDeath) * at(x, y).getGrass());
+            at(x, y).setGrass((1 - m_settings.grassDeath) * at(x, y).getGrass());
             at(x, y).setOrganic(at(x, y).getOrganic()
-                + m_grassDeath * m_deadGrassOrganicRatio * at(x, y).getGrass());
+                + m_settings.grassDeath * m_settings.deadGrassOrganicRatio * at(x, y).getGrass());
 
-            at(x, y).setOrganic((1 - m_grassGrowth) * at(x, y).getOrganic());
+            at(x, y).setOrganic((1 - m_settings.grassGrowth) * at(x, y).getOrganic());
             at(x, y).setGrass(at(x, y).getGrass()
-                + m_grassGrowth * m_organicGrassRatio * at(x, y).getOrganic());
+                + m_settings.grassGrowth * m_settings.organicGrassRatio * at(x, y).getOrganic());
     }
 
     vector<double> newGrass;
@@ -422,11 +419,12 @@ void Field::update() noexcept {
                 int rotationDelta = rotation - currentRotation;
                 int index = yCurrent * m_width + xCurrent;
 
-                newGrass[y * m_width + x] += m_grassSpread * at(xCurrent, yCurrent).getGrass();
-                newGrass[index] -= m_grassSpread * at(xCurrent, yCurrent).getGrass();
+                newGrass[y * m_width + x] += m_settings.grassSpread * at(xCurrent, yCurrent).getGrass();
+                newGrass[index] -= m_settings.grassSpread * at(xCurrent, yCurrent).getGrass();
 
-                newOrganic[y * m_width + x] += m_organicSpread * at(xCurrent, yCurrent).getOrganic();
-                newOrganic[index] -= m_organicSpread * at(xCurrent, yCurrent).getOrganic();
+                newOrganic[y * m_width + x] += m_settings.organicSpread 
+                                                * at(xCurrent, yCurrent).getOrganic();
+                newOrganic[index] -= m_settings.organicSpread * at(xCurrent, yCurrent).getOrganic();
     }
 
     for (int y = 0; y < m_height; ++ y)

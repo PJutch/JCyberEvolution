@@ -191,7 +191,7 @@ Color FieldView::getBotColor(const Cell& cell) const noexcept {
                              / static_cast<double>(cell.getBot().getAge()), 1.) * 255, 0);
             break;
         case Mode::AGE: {
-            Uint8 brightness = cell.getBot().getAge() * 255 / m_field->getLifetime();
+            Uint8 brightness = cell.getBot().getAge() * 255 / m_field->getSettings().lifetime;
             return Color(brightness, brightness, brightness);
         }
         case Mode::ENERGY: {
@@ -579,107 +579,32 @@ void FieldView::showToolsWindow() noexcept {
 
 void FieldView::showLifeCycleWindow() noexcept {
     with_Window("Life cycle") {
-        int lifetime = m_field->getLifetime();
-        if (SliderInt("Lifetime", &lifetime, 0, 1024)) {
-            m_field->setLifetime(lifetime);
-        }
-
-        float mutationChance = m_field->getMutationChance();
-        if (SliderFloat("Mutation chance", &mutationChance, 0, 1, 
-                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
-            m_field->setMutationChance(mutationChance);
-        }
-
-        float energyGain = m_field->getEnergyGain();
-        if (SliderFloat("Energy gain", &energyGain, 0.f, 100.f)) {
-            m_field->setEnergyGain(energyGain);
-        }
-
-        float multiplyCost = m_field->getMultiplyCost();
-        if (SliderFloat("Multiply cost", &multiplyCost, 1.f, 100.f)) {
-            m_field->setMultiplyCost(multiplyCost);
-        }
-
-        float startEnergy = m_field->getStartEnergy();
-        if (SliderFloat("Start energy", &startEnergy, 1.f, 100.f)) {
-            m_field->setStartEnergy(startEnergy);
-        }
-
-        float killGainRatio = m_field->getKillGainRatio();
-        if (SliderFloat("Kill gain ratio", &killGainRatio, 0.f, 2.f)) {
-            m_field->setKillGainRatio(killGainRatio);
-        }
-
-        float eatEfficiency = m_field->getEatEfficiency();
-        if (SliderFloat("Eat efficiency", &eatEfficiency, 0.f, 2.f)) {
-            m_field->setEatEfficiency(eatEfficiency);
-        }
-
-        bool eatLong = m_field->isEatLong();
-        if (Checkbox("Eat action is long", &eatLong)) {
-             m_field->setEatLong(eatLong);
-        }
-
-        float grassGrowth = m_field->getGrassGrowth();
-        if (SliderFloat("Grass growth rate", &grassGrowth, 0.f, 1.f)) {
-            m_field->setGrassGrowth(grassGrowth);
-        }
-
-        float grassSpread = m_field->getGrassSpread();
-        if (SliderFloat("Grass spread rate", &grassSpread, 0.f, 0.125f)) {
-            m_field->setGrassSpread(grassSpread);
-        }
-
-        float usedEnergyOrganicRatio = m_field->getUsedEnergyOrganicRatio();
-        if (SliderFloat("Used energy to organic ratio", &usedEnergyOrganicRatio, 0.f, 16.f,
-                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
-            m_field->setUsedEnergyOrganicRatio(usedEnergyOrganicRatio);
-        }
-
-        float eatenOrganicRatio = m_field->getEatenOrganicRatio();
-        if (SliderFloat("Eaten grass to organic ratio", &eatenOrganicRatio, 0.f, 16.f, 
-                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
-            m_field->setEatenOrganicRatio(eatenOrganicRatio);
-        }
-
-        float killOrganicRatio = m_field->getKillOrganicRatio();
-        if (SliderFloat("Killed energy to organic ratio", &killOrganicRatio, 0.f, 16.f, 
-                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
-            m_field->setKillOrganicRatio(killOrganicRatio);
-        }
-
-        float diedOrganicRatio = m_field->getDiedOrganicRatio();
-        if (SliderFloat("Died energy to organic ratio", &diedOrganicRatio, 0.f, 16.f, 
-                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
-            m_field->setDiedOrganicRatio(diedOrganicRatio);
-        }
-
-        float organicGrassRatio = m_field->getOrganicGrassRatio();
-        if (SliderFloat("Organic to growed grass ratio", &organicGrassRatio, 0.f, 16.f, 
-                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
-            m_field->setOrganicGrassRatio(organicGrassRatio);
-        }
-
-        float organicSpread = m_field->getOrganicSpread();
-        if (SliderFloat("Organic spread rate", &organicSpread, 0.f, 0.125f)) {
-            m_field->setOrganicSpread(organicSpread);
-        }
-
-        float organicSpoil = m_field->getOrganicSpoil();
-        if (SliderFloat("Organic spoil rate", &organicSpoil, 0.f, 1.f)) {
-            m_field->setOrganicSpoil(organicSpoil);
-        }
-
-        float grassDeath = m_field->getGrassDeath();
-        if (SliderFloat("Grass death rate", &grassDeath, 0.f, 1.f)) {
-            m_field->setGrassDeath(grassDeath);
-        }
-
-        float deadGrassOrganicRatio = m_field->getDeadGrassOrganicRatio();
-        if (SliderFloat("Dead grass to organic ratio", &deadGrassOrganicRatio, 0.f, 16.f, 
-                        "%.3f", ImGuiSliderFlags_Logarithmic)) {
-            m_field->setDeadGrassOrganicRatio(deadGrassOrganicRatio);
-        }
+        SliderInt("Lifetime", &m_field->getSettings().lifetime, 0, 1024);
+        SliderFloat("Mutation chance", &m_field->getSettings().mutationChance, 0, 1, 
+                        "%.3f", ImGuiSliderFlags_Logarithmic);
+        SliderFloat("Energy gain", &m_field->getSettings().energyGain, 0.f, 100.f);
+        SliderFloat("Multiply cost", &m_field->getSettings().multiplyCost, 1.f, 100.f);
+        SliderFloat("Start energy", &m_field->getSettings().startEnergy, 1.f, 100.f);
+        SliderFloat("Kill gain ratio", &m_field->getSettings().killGainRatio, 0.f, 2.f);
+        SliderFloat("Eat efficiency", &m_field->getSettings().eatEfficiency, 0.f, 2.f);
+        Checkbox("Eat action is long", &m_field->getSettings().eatLong);
+        SliderFloat("Grass growth rate", &m_field->getSettings().grassGrowth, 0.f, 1.f);
+        SliderFloat("Grass spread rate", &m_field->getSettings().grassSpread, 0.f, 0.125f);
+        SliderFloat("Used energy to organic ratio", &m_field->getSettings().usedEnergyOrganicRatio, 
+                    0.f, 16.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+        SliderFloat("Eaten grass to organic ratio", &m_field->getSettings().eatenOrganicRatio,
+                    0.f, 16.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+        SliderFloat("Killed energy to organic ratio", &m_field->getSettings().killOrganicRatio, 
+                    0.f, 16.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+        SliderFloat("Died energy to organic ratio", &m_field->getSettings().diedOrganicRatio, 
+                    0.f, 16.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+        SliderFloat("Organic to growed grass ratio", &m_field->getSettings().organicGrassRatio, 
+                    0.f, 16.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+        SliderFloat("Organic spread rate", &m_field->getSettings().organicSpread, 0.f, 0.125f);
+        SliderFloat("Organic spoil rate", &m_field->getSettings().organicSpoil, 0.f, 1.f);
+        SliderFloat("Grass death rate", &m_field->getSettings().grassDeath, 0.f, 1.f);
+        SliderFloat("Dead grass to organic ratio", &m_field->getSettings().deadGrassOrganicRatio, 
+                    0.f, 16.f, "%.3f", ImGuiSliderFlags_Logarithmic);
     }
 }
 
