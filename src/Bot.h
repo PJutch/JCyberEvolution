@@ -39,7 +39,9 @@ public:
         TEST_EMPTY,
         TEST_ENEMY,
         TEST_ALLY,
-        TEST_ENERGY
+        TEST_ENERGY,
+        TEST_GRASS,
+        TEST_ORGANIC,
     };
 
     Bot() noexcept;

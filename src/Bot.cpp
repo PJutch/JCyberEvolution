@@ -205,6 +205,14 @@ Decision Bot::makeDecision(Field& field) noexcept {
             executeTest(m_energy > (*m_species)[(m_instructionPointer + 3) % 256], 
                         randomEngine);
             break;
+        case Instruction::TEST_GRASS:
+            executeTest(field.at(m_position.x, m_position.y).getGrass() > 
+                (*m_species)[(m_instructionPointer + 3) % 256] % 256, randomEngine);
+            break;
+        case Instruction::TEST_ORGANIC:
+            executeTest(field.at(m_position.x, m_position.y).getOrganic() > 
+                (*m_species)[(m_instructionPointer + 3) % 256] % 256, randomEngine);
+            break;
         default: 
             ++ m_instructionPointer;
             break;
