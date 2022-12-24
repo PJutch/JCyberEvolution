@@ -639,14 +639,14 @@ void FieldView::showGui() noexcept {
                       STATISTICS_HISTORY_SIZE, 0, NULL, 
                       0.f, m_field->getWidth() * m_field->getHeight(), ImVec2(0, 80.0f));
             
-            Text("Total energy: %.3f", m_statistics.back().totalEnergy);
+            Text("Total energy: %.3g", m_statistics.back().totalEnergy);
             auto totalEnergyGetter = [](void* data, int index) -> float {
                 auto statistics = *static_cast<std::deque<Field::Statistics>*>(data);
                 return statistics[index].totalEnergy;
             };
             PlotLines("##Total energy", totalEnergyGetter, &m_statistics, 
                       STATISTICS_HISTORY_SIZE, 0, NULL, 
-                      0.f, m_field->getWidth() * m_field->getHeight(), ImVec2(0, 80.0f));
+                      0.f, m_field->getWidth() * m_field->getHeight() * 512, ImVec2(0, 80.0f));
         }
 
         showLifeCycleWindow();

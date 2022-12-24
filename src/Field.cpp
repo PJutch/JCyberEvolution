@@ -444,12 +444,12 @@ void Field::update() noexcept {
 Field::Statistics Field::computeStatistics() const noexcept {
     Statistics statistics{0, 0.f};
     for (const Cell& cell : m_cells) {
-        statistics.totalEnergy += m_settings.eatEfficiency * cell.getGrass() 
-            + m_settings.eatEfficiency * m_settings.organicGrassRatio * cell.getOrganic();
+        statistics.totalEnergy += cell.getGrass() + m_settings.organicGrassRatio * cell.getOrganic();
 
         if (cell.hasBot()) {
             ++ statistics.population;
-            statistics.totalEnergy += cell.getBot().getEnergy();
+            statistics.totalEnergy += cell.getBot().getEnergy() 
+                * m_settings.diedOrganicRatio * m_settings.organicGrassRatio;
         }
     }
     return statistics;
