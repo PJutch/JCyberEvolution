@@ -139,6 +139,8 @@ private:
                       const Field& field, std::mt19937_64& randomEngine) const noexcept;
 
     void executeTest(bool condition, std::mt19937_64& randomEngine) noexcept;
+
+    double useEnergy(double energy, const Field& field) noexcept;
 };
 
 #endif

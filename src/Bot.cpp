@@ -92,8 +92,14 @@ bool Bot::decodeCoords(uint16_t code, int& x, int& y,
     return field.makeIndicesSafe(x, y);
 }
 
+double Bot::useEnergy(double energy, const Field& field) noexcept {
+    double organic = std::min(energy * field.getSettings().usedEnergyOrganicRatio, m_energy);
+    m_energy -= energy;
+    return organic;
+}
+
 Decision Bot::makeDecision(Field& field) noexcept {
-    if (++ m_age > field.getSettings().lifetime) return {Decision::Action::DIE, -1};
+    if (++ m_age > field.getSettings().lifetime) return {Decision::Action::DIE, -1, 0.0};
 
     Decision decision{Decision::Action::SKIP, -1, 0.0};
 
@@ -104,9 +110,9 @@ Decision Bot::makeDecision(Field& field) noexcept {
     while (run && m_energy > 0) {
         switch (static_cast<Bot::Instruction>(((*m_species)[m_instructionPointer]) % 16)) {
         case Instruction::MOVE:
-            decision = {Decision::Action::MOVE, 
-                decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], 
-                               field.getRandomEngine())};
+            decision.action = Decision::Action::MOVE;
+            decision.direction = decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], 
+                                                field.getRandomEngine());
             run = false;
             m_instructionPointer += 2;
             break;
@@ -148,14 +154,16 @@ Decision Bot::makeDecision(Field& field) noexcept {
             ++ m_instructionPointer;
             break;
         case Instruction::MULTIPLY:
-            decision.action = Decision::Action::MULTIPLY;
-            decision.direction = decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], 
-                                                randomEngine);
-                
-            run = false;
-            m_energy -= field.getSettings().multiplyCost;
-            decision.organic += field.getSettings().usedEnergyOrganicRatio 
-                                * field.getSettings().multiplyCost;
+            if (m_energy > field.getSettings().multiplyCost) {
+                decision.action = Decision::Action::MULTIPLY;
+                decision.direction = decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], 
+                                                    randomEngine);
+                    
+                run = false;
+                m_energy -= field.getSettings().multiplyCost;
+                decision.organic += (field.getSettings().multiplyCost - field.getSettings().startEnergy) 
+                                * field.getSettings().usedEnergyOrganicRatio;
+            }
             m_instructionPointer += 2;
             break;
         case Instruction::ATTACK:
@@ -218,17 +226,17 @@ Decision Bot::makeDecision(Field& field) noexcept {
             break;
         }
 
-        m_energy -= field.getSettings().instructionCost;
-        decision.organic += field.getSettings().instructionCost
-                          * field.getSettings().usedEnergyOrganicRatio;
+        decision.organic += useEnergy(field.getSettings().instructionCost, field);
 
         m_instructionPointer %= 256;
         if (m_instructionPointer < 0) m_instructionPointer += 256;
     }
 
-    -- m_energy;
-    decision.organic += field.getSettings().usedEnergyOrganicRatio;
-    if (m_energy <= 0) return {Decision::Action::DIE, -1};
+    decision.organic += useEnergy(1.0, field);
+    if (m_energy <= 0) {
+        decision.action = Decision::Action::DIE;
+        decision.direction = -1;
+    }
 
     return decision;
 }

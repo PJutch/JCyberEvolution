@@ -379,7 +379,7 @@ void Field::update() noexcept {
                     && at(x, y).isAlive()) {
                 at(x, y).setShouldDie(true);
                 decisions[y * m_width + x].organic += m_settings.diedOrganicRatio 
-                                                        * at(x, y).getBot().getEnergy();
+                                                        * max(at(x, y).getBot().getEnergy(), 0.0);
             }
     }
 
