@@ -585,6 +585,8 @@ void FieldView::showLifeCycleWindow() noexcept {
         SliderFloat("Energy gain", &m_field->getSettings().energyGain, 0.f, 100.f);
         SliderFloat("Multiply cost", &m_field->getSettings().multiplyCost, 1.f, 100.f);
         SliderFloat("Start energy", &m_field->getSettings().startEnergy, 1.f, 100.f);
+        SliderFloat("Instruction cost", &m_field->getSettings().instructionCost, 0.f, 10.f, 
+                    "%.3f", ImGuiSliderFlags_Logarithmic);
         SliderFloat("Kill gain ratio", &m_field->getSettings().killGainRatio, 0.f, 2.f);
         SliderFloat("Eat efficiency", &m_field->getSettings().eatEfficiency, 0.f, 2.f);
         Checkbox("Eat action is long", &m_field->getSettings().eatLong);

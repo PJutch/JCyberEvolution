@@ -389,13 +389,13 @@ void Field::update() noexcept {
             at(x, y).setOrganic((1 - m_settings.organicSpoil) * at(x, y).getOrganic()
                                  + decisions[index].organic);
 
-            at(x, y).setGrass((1 - m_settings.grassDeath) * at(x, y).getGrass());
             at(x, y).setOrganic(at(x, y).getOrganic()
                 + m_settings.grassDeath * m_settings.deadGrassOrganicRatio * at(x, y).getGrass());
+            at(x, y).setGrass((1 - m_settings.grassDeath) * at(x, y).getGrass());
 
-            at(x, y).setOrganic((1 - m_settings.grassGrowth) * at(x, y).getOrganic());
             at(x, y).setGrass(at(x, y).getGrass()
                 + m_settings.grassGrowth * m_settings.organicGrassRatio * at(x, y).getOrganic());
+            at(x, y).setOrganic((1 - m_settings.grassGrowth) * at(x, y).getOrganic());
     }
 
     vector<double> newGrass;

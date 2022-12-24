@@ -31,6 +31,7 @@ public:
         float energyGain = 10.0;
         float multiplyCost = 20.0;
         float startEnergy = 10.0;
+        float instructionCost = 0.1;
         float killGainRatio = 0.5;
         float eatEfficiency = 0.5;
         float grassGrowth = 0.05;

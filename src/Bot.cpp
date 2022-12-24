@@ -218,13 +218,16 @@ Decision Bot::makeDecision(Field& field) noexcept {
             break;
         }
 
-        -- m_energy;
-        decision.organic += field.getSettings().usedEnergyOrganicRatio;
+        m_energy -= field.getSettings().instructionCost;
+        decision.organic += field.getSettings().instructionCost
+                          * field.getSettings().usedEnergyOrganicRatio;
 
         m_instructionPointer %= 256;
         if (m_instructionPointer < 0) m_instructionPointer += 256;
     }
 
+    -- m_energy;
+    decision.organic += field.getSettings().usedEnergyOrganicRatio;
     if (m_energy <= 0) return {Decision::Action::DIE, -1};
 
     return decision;
