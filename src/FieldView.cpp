@@ -81,7 +81,7 @@ using std::fmod;
 using std::fmodf;
 using std::floor;
 
-const int POPULATION_HISTORY_SIZE = 128;
+const int STATISTICS_HISTORY_SIZE = 128;
 
 FieldView::FieldView(Vector2f screenSize, uint64_t seed) : 
         m_field{nullptr}, m_fieldWidth{128}, m_fieldHeight{128}, 
@@ -92,7 +92,7 @@ FieldView::FieldView(Vector2f screenSize, uint64_t seed) :
         m_tool{Tool::SELECT_BOT}, m_selectedBot{-1, -1}, m_selectionShape{{0.f, 0.f}},
         m_mode{Mode::BOTS},
         m_recentFiles{}, m_selectedFile{-1}, m_loadedBot{nullptr}, 
-        m_populationHistory(128, 0),
+        m_statistics(STATISTICS_HISTORY_SIZE),
         m_baseZoomingChange{1.1f}, m_baseMovingSpeed{10.f}, m_speedModificator{10.f} {
     m_selectionShape.setFillColor(Color::Transparent);
     m_selectionShape.setOutlineColor(Color::Red);
@@ -173,8 +173,9 @@ void FieldView::updateField() noexcept {
     m_simulationStepRest += getSimulationSpeed();
     while (m_simulationStepRest >= 1.f) {
         m_field->update();
-        m_populationHistory.pop_front();
-        m_populationHistory.push_back(m_field->computePopulation());
+
+        m_statistics.pop_front();
+        m_statistics.push_back(m_field->computeStatistics());
 
         -- m_simulationStepRest;
     }
@@ -558,13 +559,13 @@ void FieldView::showToolsWindow() noexcept {
     if (Button("Random fill")) {
         m_selectedBot = {-1, -1};
         m_field->randomFill(m_fillDensity);
-        fill(m_populationHistory, m_field->computePopulation());
+        fill(m_statistics, m_field->computeStatistics());
     }
 
     if (Button("Clear")) {
         m_selectedBot = {-1, -1};
         m_field->clear();
-        fill(m_populationHistory, 0);
+        fill(m_statistics, m_field->computeStatistics());
     }
 
     int tool = static_cast<int>(m_tool);
@@ -629,10 +630,23 @@ void FieldView::showGui() noexcept {
         with_Window("Statistics") {
             Text("Epoch: %i", m_field->getEpoch());
 
-            Text("Population: %i", m_populationHistory.back());
-            PlotLines("##Population", containerGetter<deque<int>>, &m_populationHistory, 
-                            POPULATION_HISTORY_SIZE, 0, NULL, 
-                            0.f, m_field->getWidth() * m_field->getHeight(), ImVec2(0, 80.0f));
+            Text("Population: %i", m_statistics.back().population);
+            auto populationGetter = [](void* data, int index) -> float {
+                auto statistics = *static_cast<std::deque<Field::Statistics>*>(data);
+                return statistics[index].population;
+            };
+            PlotLines("##Population", populationGetter, &m_statistics, 
+                      STATISTICS_HISTORY_SIZE, 0, NULL, 
+                      0.f, m_field->getWidth() * m_field->getHeight(), ImVec2(0, 80.0f));
+            
+            Text("Total energy: %.3f", m_statistics.back().totalEnergy);
+            auto totalEnergyGetter = [](void* data, int index) -> float {
+                auto statistics = *static_cast<std::deque<Field::Statistics>*>(data);
+                return statistics[index].totalEnergy;
+            };
+            PlotLines("##Total energy", totalEnergyGetter, &m_statistics, 
+                      STATISTICS_HISTORY_SIZE, 0, NULL, 
+                      0.f, m_field->getWidth() * m_field->getHeight(), ImVec2(0, 80.0f));
         }
 
         showLifeCycleWindow();
@@ -648,6 +662,7 @@ void FieldView::showGui() noexcept {
             showNewFieldTopologyCombo();
             if (Button("Create")) {
                 setField(make_unique<Field>(m_fieldWidth, m_fieldHeight, m_randomEngine()));
+                fill(m_statistics, m_field->computeStatistics());
                 m_field->setTopology(m_fieldTopology);
             }
         }

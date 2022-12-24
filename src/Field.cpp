@@ -441,12 +441,18 @@ void Field::update() noexcept {
     ++ m_epoch;
 }
 
-int Field::computePopulation() const noexcept {
-    int population = 0;
+Field::Statistics Field::computeStatistics() const noexcept {
+    Statistics statistics{0, 0.f};
     for (const Cell& cell : m_cells) {
-        if (cell.hasBot()) ++ population;
+        statistics.totalEnergy += m_settings.eatEfficiency * cell.getGrass() 
+            + m_settings.eatEfficiency * m_settings.organicGrassRatio * cell.getOrganic();
+
+        if (cell.hasBot()) {
+            ++ statistics.population;
+            statistics.totalEnergy += cell.getBot().getEnergy();
+        }
     }
-    return population;
+    return statistics;
 }
 
 void Field::randomFill(float density) noexcept {

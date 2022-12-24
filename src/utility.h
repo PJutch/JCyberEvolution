@@ -31,9 +31,9 @@ inline int getOppositeRotation(int rotation) noexcept {
     return (rotation + 4) % 8;
 }
 
-template<typename T>
-float containerGetter(void* data, int index) noexcept {
-    return static_cast<float>((*static_cast<T*>(data))[index]);
+template <typename T>
+decltype(auto) containerGetter(void* container, int index) noexcept {
+    return (*static_cast<T*>(container))[index];
 }
 
 inline float getFirstInInterval(float pos, float length, float start, float end) {

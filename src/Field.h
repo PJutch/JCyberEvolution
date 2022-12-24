@@ -61,6 +61,11 @@ public:
         CONE_RIGHT_BOTTOM
     };
 
+    struct Statistics {
+        int population;
+        float totalEnergy;
+    };
+
     Field(int width, int height, uint64_t seed);
 
     int getWidth() const noexcept {
@@ -89,7 +94,7 @@ public:
         return m_epoch;
     }
 
-    int computePopulation() const noexcept;
+    Statistics computeStatistics() const noexcept;
 
     Settings& getSettings() noexcept {
         return m_settings;

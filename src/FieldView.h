@@ -126,7 +126,7 @@ private:
     int m_selectedFile;
     std::unique_ptr<Bot> m_loadedBot;
 
-    std::deque<int> m_populationHistory;
+    std::deque<Field::Statistics> m_statistics;
 
     float m_baseZoomingChange;
     float m_baseMovingSpeed;
