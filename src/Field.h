@@ -27,25 +27,25 @@ class Field {
 public:
     struct Settings {
         int lifetime = 256;
-        float mutationChance = 0.001;
-        float energyGain = 10.0;
-        float multiplyCost = 20.0;
-        float startEnergy = 10.0;
-        float instructionCost = 0.1;
-        float killGainRatio = 0.5;
-        float eatEfficiency = 0.5;
-        float grassGrowth = 0.05;
-        float grassSpread = 0.1;
+        float mutationChance = 0.001f;
+        float energyGain = 10.0f;
+        float multiplyCost = 20.0f;
+        float startEnergy = 10.0f;
+        float instructionCost = 0.1f;
+        float killGainRatio = 0.5f;
+        float eatEfficiency = 0.5f;
+        float grassGrowth = 0.05f;
+        float grassSpread = 0.1f;
         bool eatLong = true;
-        float usedEnergyOrganicRatio = 0.5;
-        float eatenOrganicRatio = 0.5;
-        float killOrganicRatio = 0.5;
-        float diedOrganicRatio = 0.25;
-        float organicGrassRatio = 5.;
-        float organicSpread = 0.1;
-        float organicSpoil = 0.05;
-        float grassDeath = 0.05;
-        float deadGrassOrganicRatio = 0.5;
+        float usedEnergyOrganicRatio = 0.5f;
+        float eatenOrganicRatio = 0.5f;
+        float killOrganicRatio = 0.5f;
+        float diedOrganicRatio = 0.25f;
+        float organicGrassRatio = 5.f;
+        float organicSpread = 0.1f;
+        float organicSpoil = 0.05f;
+        float grassDeath = 0.05f;
+        float deadGrassOrganicRatio = 0.5f;
     };
 
     enum class Topology {

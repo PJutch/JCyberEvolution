@@ -361,13 +361,17 @@ void Field::update() noexcept {
 
                         at(x, y).createBot((decision.direction + rotationDelta) % 8, 
                             m_settings.startEnergy, offspring);
+                    } else {
+                        decisions[index].organic += m_settings.usedEnergyOrganicRatio 
+                                                  * m_settings.startEnergy;
                     }
                     break;
                 case Decision::Action::ATTACK:
                     if (at(x, y).isAlive()) {
                         bot.setEnergy(bot.getEnergy()
-                            + m_settings.killGainRatio * at(x, y).getBot().getEnergy());
-                        decision.organic += m_settings.killOrganicRatio * at(x, y).getBot().getEnergy();
+                            + m_settings.killGainRatio * max(at(x, y).getBot().getEnergy(), 0.0));
+                        decision.organic += m_settings.killOrganicRatio 
+                            * (1 - m_settings.killGainRatio) * max(at(x, y).getBot().getEnergy(), 0.0);
                         at(x, y).setShouldDie(true);
                         bot.handleKill();
                     }
@@ -379,7 +383,7 @@ void Field::update() noexcept {
                     && at(x, y).isAlive()) {
                 at(x, y).setShouldDie(true);
                 decisions[y * m_width + x].organic += m_settings.diedOrganicRatio 
-                                                        * max(at(x, y).getBot().getEnergy(), 0.0);
+                                                    * max(at(x, y).getBot().getEnergy(), 0.0);
             }
     }
 

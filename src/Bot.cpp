@@ -93,23 +93,31 @@ bool Bot::decodeCoords(uint16_t code, int& x, int& y,
 }
 
 double Bot::useEnergy(double energy, const Field& field) noexcept {
-    double organic = std::min(energy * field.getSettings().usedEnergyOrganicRatio, m_energy);
+    double usedEnergy = std::min(energy, m_energy);
     m_energy -= energy;
-    return organic;
+    return usedEnergy * field.getSettings().usedEnergyOrganicRatio;
 }
 
+const bool logToCout = false;
+
 Decision Bot::makeDecision(Field& field) noexcept {
-    if (++ m_age > field.getSettings().lifetime) return {Decision::Action::DIE, -1, 0.0};
+    if (++ m_age > field.getSettings().lifetime) {
+        if (logToCout) std::cout << "Too old -> Action::DIE\n";
+        return {Decision::Action::DIE, -1, 0.0};
+    }
 
     Decision decision{Decision::Action::SKIP, -1, 0.0};
 
     mt19937_64& randomEngine = field.getRandomEngine();
     Cell& cell = field.at(m_position.x, m_position.y);
 
+    double was_energy = std::max(m_energy, 0.0) + decision.organic + cell.getGrass();
+
     bool run = true;
     while (run && m_energy > 0) {
         switch (static_cast<Bot::Instruction>(((*m_species)[m_instructionPointer]) % 16)) {
         case Instruction::MOVE:
+            if (logToCout) std::cout << "Instruction::MOVE -> Action::MOVE\n";
             decision.action = Decision::Action::MOVE;
             decision.direction = decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], 
                                                 field.getRandomEngine());
@@ -128,6 +136,7 @@ Decision Bot::makeDecision(Field& field) noexcept {
                 = decodeAddress((*m_species)[(m_instructionPointer + 1) % 256], randomEngine);
             break;
         case Instruction::EAT: {
+            if (logToCout) std::cout << "Instruction::EAT -> Action::SKIP\n";
             double eaten = min(field.getSettings().eatEfficiency * cell.getGrass(), 
                                static_cast<double>(field.getSettings().energyGain));
             cell.setGrass(cell.getGrass() - eaten / field.getSettings().eatEfficiency);
@@ -144,29 +153,39 @@ Decision Bot::makeDecision(Field& field) noexcept {
             break;
         }
         case Instruction::SKIP:
+            if (logToCout) std::cout << "Instruction::SKIP -> Action::SKIP\n";
             decision.action = Decision::Action::SKIP;
             run = false;
             ++ m_instructionPointer;
             break;
         case Instruction::DIE:
+            if (logToCout) std::cout << "Instruction::DIE -> Action::DIE\n";
             decision.action = Decision::Action::DIE;
             run = false;
             ++ m_instructionPointer;
             break;
         case Instruction::MULTIPLY:
+            if (logToCout) std::cout << "Instruction::MULTIPLY";
             if (m_energy > field.getSettings().multiplyCost) {
+                if (logToCout) std::cout << " -> Action::MULTIPLY";
                 decision.action = Decision::Action::MULTIPLY;
                 decision.direction = decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], 
                                                     randomEngine);
                     
                 run = false;
                 m_energy -= field.getSettings().multiplyCost;
+                if (m_energy <= 0.0) {
+                    if (logToCout) std::cout << "ERROR: Shouldn't be able to MULTIPLY\n";
+                }
+
                 decision.organic += (field.getSettings().multiplyCost - field.getSettings().startEnergy) 
                                 * field.getSettings().usedEnergyOrganicRatio;
             }
+            if (logToCout) std::cout << '\n';
             m_instructionPointer += 2;
             break;
         case Instruction::ATTACK:
+            if (logToCout) std::cout << "Instruction::ATTACK -> Action::ATTACK\n";
             decision.action = Decision::Action::ATTACK;
             decision.direction = decodeRotation((*m_species)[(m_instructionPointer + 1) % 256], 
                                                 randomEngine);
@@ -226,16 +245,36 @@ Decision Bot::makeDecision(Field& field) noexcept {
             break;
         }
 
+        if (logToCout) std::cout << "Energy: " << m_energy << '\n';
         decision.organic += useEnergy(field.getSettings().instructionCost, field);
 
         m_instructionPointer %= 256;
         if (m_instructionPointer < 0) m_instructionPointer += 256;
     }
 
+    if (logToCout) std::cout << "Energy (at update end): " << m_energy << '\n';
     decision.organic += useEnergy(1.0, field);
     if (m_energy <= 0) {
+        if (decision.action == Decision::Action::MULTIPLY) 
+            decision.organic += field.getSettings().startEnergy * field.getSettings().diedOrganicRatio;
+            // energy for offspring creation should be dropped
+        
         decision.action = Decision::Action::DIE;
-        decision.direction = -1;
+        
+        if (logToCout) std::cout << "Not enough energy -> Action::DIE\n";
+    }
+
+    double delta_energy = (std::max(m_energy, 0.0) + decision.organic + cell.getGrass()) - was_energy;
+    if (decision.action == Decision::Action::MULTIPLY) {
+        delta_energy += field.getSettings().startEnergy;
+    }
+
+    if (delta_energy > 1e-5) {
+        if (logToCout) std::cout << "Dupe " << delta_energy << " energy\n";
+    } else if (delta_energy < -1e-5) {
+        if (logToCout) std::cout << "Lost " << -delta_energy << " energy\n";
+    } else {
+        if (logToCout) std::cout << "Normal energy\n";
     }
 
     return decision;
