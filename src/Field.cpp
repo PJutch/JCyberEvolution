@@ -313,7 +313,31 @@ bool Field::makeIndicesSafe(int& x, int& y, int* rotation) const noexcept {
     return false;
 }
 
-void Field::update() noexcept {
+double Field::computeTotalEnergy() const {
+    double totalEnergy = 0.0;
+    for (const Cell& cell : m_cells) {
+        totalEnergy += cell.getGrass() + m_settings.organicGrassRatio * cell.getOrganic();
+
+        if (cell.hasBot())
+            totalEnergy += cell.getBot().getEnergy() 
+                * m_settings.diedOrganicRatio * m_settings.organicGrassRatio;
+    }
+    return totalEnergy;
+}
+
+int Field::computePopulation() const {
+    int population = 0;
+    for (const Cell& cell : m_cells)
+        if (cell.hasBot())
+            ++ population;
+    return population;
+}
+
+void Field::update() {
+    double totalEnergy = 0.f;
+    if (m_settings.preserveEnergy)
+        totalEnergy = computeTotalEnergy();
+
     vector<Decision> decisions;
     decisions.reserve(m_width * m_height);
     for (Cell& cell : m_cells) {
@@ -442,21 +466,18 @@ void Field::update() noexcept {
             at(x, y).setOrganic(clamp(newOrganic[index], 0.0, 255.0));
     }
 
+    if (m_settings.preserveEnergy) {
+        double deltaEnergy = computeTotalEnergy() - totalEnergy;
+        double deltaOrganic = deltaEnergy / m_settings.organicGrassRatio;
+        for (Cell& cell : m_cells)
+            cell.setOrganic(cell.getOrganic() - deltaOrganic / getArea());
+    }
+
     ++ m_epoch;
 }
 
-Field::Statistics Field::computeStatistics() const noexcept {
-    Statistics statistics{0, 0.f};
-    for (const Cell& cell : m_cells) {
-        statistics.totalEnergy += cell.getGrass() + m_settings.organicGrassRatio * cell.getOrganic();
-
-        if (cell.hasBot()) {
-            ++ statistics.population;
-            statistics.totalEnergy += cell.getBot().getEnergy() 
-                * m_settings.diedOrganicRatio * m_settings.organicGrassRatio;
-        }
-    }
-    return statistics;
+Field::Statistics Field::computeStatistics() const {
+    return Statistics(computePopulation(), computeTotalEnergy());
 }
 
 void Field::randomFill(float density) noexcept {

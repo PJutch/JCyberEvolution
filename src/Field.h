@@ -46,6 +46,7 @@ public:
         float organicSpoil = 0.05f;
         float grassDeath = 0.05f;
         float deadGrassOrganicRatio = 0.5f;
+        bool preserveEnergy = false;
     };
 
     enum class Topology {
@@ -94,7 +95,7 @@ public:
         return m_epoch;
     }
 
-    Statistics computeStatistics() const noexcept;
+    Statistics computeStatistics() const;
 
     Settings& getSettings() noexcept {
         return m_settings;
@@ -160,7 +161,7 @@ public:
     void randomFill(float density) noexcept;
     void clear() noexcept;
 
-    void update() noexcept;
+    void update();
 
     void setView(FieldView* view) noexcept {
         m_view = view;
@@ -180,6 +181,13 @@ private:
     sf::RectangleShape m_borderShape;
 
     std::mt19937_64 m_randomEngine;
+
+    int computePopulation() const;
+    double computeTotalEnergy() const;
+
+    int getArea() const {
+        return m_width * m_height;
+    }
 };
 
 #endif

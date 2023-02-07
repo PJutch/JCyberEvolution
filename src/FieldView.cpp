@@ -608,6 +608,7 @@ void FieldView::showLifeCycleWindow() noexcept {
         SliderFloat("Grass death rate", &m_field->getSettings().grassDeath, 0.f, 1.f);
         SliderFloat("Dead grass to organic ratio", &m_field->getSettings().deadGrassOrganicRatio, 
                     0.f, 16.f, "%.3f", ImGuiSliderFlags_Logarithmic);
+        Checkbox("Total energy is fixed", &m_field->getSettings().preserveEnergy);
     }
 }
 
