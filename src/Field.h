@@ -188,6 +188,22 @@ private:
     int getArea() const {
         return m_width * m_height;
     }
+
+    std::vector<Decision> makeDecisions();
+
+    void applyDecisions(std::vector<Decision>&& decisions);
+
+    void applyDecisions(const std::vector<Decision>& decisions_) {
+        auto decisions = decisions_;
+        applyDecisions(std::move(decisions));
+    }
+
+    void updateGrass();
+    void diffuseGrass();
+
+    void fixEnergy(double shouldBe);
+
+    void notifyDied();
 };
 
 #endif

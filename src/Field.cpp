@@ -333,21 +333,18 @@ int Field::computePopulation() const {
     return population;
 }
 
-void Field::update() {
-    double totalEnergy = 0.f;
-    if (m_settings.preserveEnergy)
-        totalEnergy = computeTotalEnergy();
-
-    vector<Decision> decisions;
+std::vector<Decision> Field::makeDecisions() {
+    std::vector<Decision> decisions;
     decisions.reserve(m_width * m_height);
-    for (Cell& cell : m_cells) {
-        if (cell.hasBot()) {
+    for (Cell& cell : m_cells)
+        if (cell.hasBot())
             decisions.push_back(cell.getBot().makeDecision(*this));
-        } else {
+        else
             decisions.emplace_back(Decision::Action::SKIP, -1);
-        }
-    }
+    return decisions;
+}
 
+void Field::applyDecisions(std::vector<Decision>&& decisions) {
     for (int y = 0; y < m_height; ++ y)
         for (int x = 0; x < m_width; ++ x) {
             int startRotation = uniform_int_distribution(0, 7)(m_randomEngine);
@@ -409,13 +406,16 @@ void Field::update() {
                 decisions[y * m_width + x].organic += m_settings.diedOrganicRatio 
                                                     * max(at(x, y).getBot().getEnergy(), 0.0);
             }
-    }
 
+            at(x, y).setOrganic(at(x, y).getOrganic() + decisions[y * m_width + x].organic);
+    }
+}
+
+void Field::updateGrass() {
     for (int y = 0; y < m_height; ++ y)
         for (int x = 0; x < m_width; ++ x) {
             int index = y * m_width + x;
-            at(x, y).setOrganic((1 - m_settings.organicSpoil) * at(x, y).getOrganic()
-                                 + decisions[index].organic);
+            at(x, y).setOrganic((1 - m_settings.organicSpoil) * at(x, y).getOrganic());
 
             at(x, y).setOrganic(at(x, y).getOrganic()
                 + m_settings.grassDeath * m_settings.deadGrassOrganicRatio * at(x, y).getGrass());
@@ -425,16 +425,20 @@ void Field::update() {
                 + m_settings.grassGrowth * m_settings.organicGrassRatio * at(x, y).getOrganic());
             at(x, y).setOrganic((1 - m_settings.grassGrowth) * at(x, y).getOrganic());
     }
+}
 
+void Field::diffuseGrass() {
     vector<double> newGrass;
     newGrass.reserve(m_width * m_height);
+    for (int y = 0; y < m_height; ++ y)
+        for (int x = 0; x < m_width; ++ x)
+            newGrass.push_back(at(x, y).getGrass());
+
     vector<double> newOrganic;
     newOrganic.reserve(m_width * m_height);
     for (int y = 0; y < m_height; ++ y)
-        for (int x = 0; x < m_width; ++ x) {
-            newGrass.push_back(at(x, y).getGrass());
+        for (int x = 0; x < m_width; ++ x)
             newOrganic.push_back(at(x, y).getOrganic());
-    }
 
     for (int y = 0; y < m_height; ++ y)
         for (int x = 0; x < m_width; ++ x)
@@ -443,7 +447,9 @@ void Field::update() {
                 int xCurrent = x + dx, yCurrent = y + dy;
                 int currentRotation = rotation;
 
-                if (!makeIndicesSafe(xCurrent, yCurrent, &currentRotation)) continue;
+                if (!makeIndicesSafe(xCurrent, yCurrent, &currentRotation)) 
+                    continue;
+                
                 int rotationDelta = rotation - currentRotation;
                 int index = yCurrent * m_width + xCurrent;
 
@@ -456,22 +462,43 @@ void Field::update() {
     }
 
     for (int y = 0; y < m_height; ++ y)
-        for (int x = 0; x < m_width; ++ x) {
-            if (at(x, y).checkShouldDie()) {
-                if (m_view) m_view->handleBotDied({x, y});
-            }
+        for (int x = 0; x < m_width; ++ x)
+            at(x, y).setGrass(clamp(newGrass[y * m_width + x], 0.0, 255.0));
+    
+    for (int y = 0; y < m_height; ++ y)
+        for (int x = 0; x < m_width; ++ x)
+            at(x, y).setOrganic(clamp(newOrganic[y * m_width + x], 0.0, 255.0));
+}
 
-            int index = y * m_width + x;
-            at(x, y).setGrass(clamp(newGrass[index], 0.0, 255.0));
-            at(x, y).setOrganic(clamp(newOrganic[index], 0.0, 255.0));
-    }
+void Field::fixEnergy(double shouldBe) {
+    double deltaEnergy = computeTotalEnergy() - shouldBe;
+    double deltaOrganic = deltaEnergy / m_settings.organicGrassRatio;
+    for (Cell& cell : m_cells)
+        cell.setOrganic(clamp(cell.getOrganic() - deltaOrganic / getArea(), 0.0, 255.0));
+}
 
-    if (m_settings.preserveEnergy) {
-        double deltaEnergy = computeTotalEnergy() - totalEnergy;
-        double deltaOrganic = deltaEnergy / m_settings.organicGrassRatio;
-        for (Cell& cell : m_cells)
-            cell.setOrganic(cell.getOrganic() - deltaOrganic / getArea());
-    }
+void Field::notifyDied() {
+    for (int y = 0; y < m_height; ++ y)
+        for (int x = 0; x < m_width; ++ x)
+            if (at(x, y).checkShouldDie())
+                if (m_view) 
+                    m_view->handleBotDied({x, y});
+}
+
+void Field::update() {
+    double totalEnergy = 0.f;
+    if (m_settings.preserveEnergy)
+        totalEnergy = computeTotalEnergy();
+
+    applyDecisions(makeDecisions());
+
+    updateGrass();
+    diffuseGrass();
+
+    if (m_settings.preserveEnergy) 
+        fixEnergy(totalEnergy);
+
+    notifyDied();
 
     ++ m_epoch;
 }
