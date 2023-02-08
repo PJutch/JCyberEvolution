@@ -16,6 +16,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include "Field.h"
 #include "utility.h"
 #include "Decision.h"
+#include "Topology.h"
 
 #include <SFML/Graphics.hpp>
 using sf::Vector2f;
@@ -89,7 +90,7 @@ bool Bot::decodeCoords(uint16_t code, int& x, int& y,
     Vector2i coords = m_position + getOffsetForRotation(direction);
     x = coords.x, y = coords.y;
 
-    return field.makeIndicesSafe(x, y);
+    return field.getTopology().makeIndicesSafe(x, y);
 }
 
 double Bot::useEnergy(double energy, const Field& field) noexcept {

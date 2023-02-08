@@ -18,6 +18,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 #include "Species.h"
 #include "Decision.h"
 #include "utility.h"
+#include "Topology.h"
 
 #include <SFML/Graphics.hpp>
 using sf::RenderTarget;
@@ -57,7 +58,7 @@ using std::abs;
 #include <cassert>
 
 Field::Field(int width, int height, uint64_t seed) : 
-        m_width{width}, m_height{height}, m_topology{Topology::TORUS}, m_cells{width * height}, 
+        m_width{width}, m_height{height}, m_topology{nullptr}, m_cells{width * height}, 
         m_epoch{0},  m_settings{},
         m_view{nullptr}, m_borderShape{{static_cast<float>(width), static_cast<float>(height)}}, 
         m_randomEngine{seed} {
@@ -71,246 +72,6 @@ Field::Field(int width, int height, uint64_t seed) :
             at(x, y).setGrass(255.0);
         }
     }
-}
-
-bool Field::makeIndicesSafe(int& x, int& y, int* rotation) const noexcept {
-    if (rotation) *rotation %= 8;
-
-    switch (m_topology) {
-    case Topology::TORUS:
-        x %= m_width;
-        if (x < 0) x += m_width;
-
-        y %= m_height;
-        if (y < 0) y += m_height;
-        return true;
-    case Topology::PLANE:
-        return IntRect(0, 0, m_width, m_height).contains(x, y);
-    case Topology::CYLINDER_Y:
-        y %= m_height;
-        if (y < 0) y += m_height;
-        return 0 <= x && x < m_width;
-    case Topology::CYLINDER_X:
-        x %= m_width;
-        if (x < 0) x += m_width;
-        return 0 <= y && y < m_height;
-    case Topology::SPHERE_LEFT:
-        assert(m_width == m_height);
-
-        x %= 2 * m_width;
-        if (x < 0) x += 2 * m_width;
-
-        y %= 2 * m_height;
-        if (y < 0) y += 2 * m_height;
-
-        if (x < m_width) {
-            if (y >= m_height) {
-                swap(x, y);
-                x = 2 * m_width - x - 1;
-
-                if (rotation) {
-                    *rotation += 6;
-                    *rotation %= 8;
-                }
-            }
-        } else {
-            if (y < m_height) {
-                swap(x, y);
-                y = 2 * m_height - y - 1;
-
-                if (rotation) {    
-                    *rotation += 2;
-                    *rotation %= 8;
-                }
-            } else {
-                x = 2 * m_width - x - 1;
-                y = 2 * m_height - y - 1;
-
-                if (rotation) {    
-                    *rotation += 4;
-                    *rotation %= 8;
-                }
-            }
-        }
-        return true;
-    case Topology::SPHERE_RIGHT:
-        assert(m_width == m_height);
-
-        x %= 2 * m_width;
-        if (x < 0) x += 2 * m_width;
-
-        y %= 2 * m_height;
-        if (y < 0) y += 2 * m_height;
-
-        if (x < m_width) {
-            if (y >= m_height) {
-                swap(x, y);
-                x = x - m_height;
-                y = m_height - y - 1;
-
-                if (rotation) {   
-                    *rotation += 2;
-                    *rotation %= 8;
-                }
-            }
-        } else {
-            if (y < m_height) {
-                swap(x, y);
-                x = m_width - x - 1;
-                y = y - m_width;
-
-                if (rotation) {   
-                    *rotation += 6;
-                    *rotation %= 8;
-                }
-            } else {
-                x = 2 * m_width - x - 1;
-                y = 2 * m_height - y - 1;
-
-                if (rotation) {
-                    *rotation += 4;
-                    *rotation %= 8;
-                }
-            }
-        }
-        return true;
-    case Topology::CONE_LEFT_TOP:
-        assert(m_width == m_height);
-
-        if (!IntRect{-m_width, -m_height, 2 * m_width, 2 * m_height}.contains(x, y))
-            return false;
-
-        if (x < 0) {
-            if (y < 0) {
-                x = -x - 1, y = -y - 1;
-
-                if (rotation) {
-                    *rotation += 4;
-                    *rotation %= 8;
-                }
-            } else {
-                swap(x, y);
-                y = -y - 1;
-
-                if (rotation) {    
-                    *rotation += 2;
-                    *rotation %= 8;
-                }
-            }
-        } else if (y < 0) {
-            swap(x, y);
-            x = -x - 1;
-
-            if (rotation) {    
-                *rotation += 6;
-                *rotation %= 8;
-            }
-        }
-        return true;
-    case Topology::CONE_RIGHT_TOP:
-        assert(m_width == m_height);
-
-        if (!IntRect{0, -m_height, 2 * m_width, 2 * m_height}.contains(x, y))
-            return false;
-
-        if (x >= m_width) {
-            if (y < 0) {
-                x = 2 * m_width - x - 1, y = -y - 1;
-
-                if (rotation) {
-                    *rotation += 4;
-                    *rotation %= 8;
-                }
-            } else {
-                swap(x, y);
-                x = m_width - x - 1, y = y - m_height;
-
-                if (rotation) {    
-                    *rotation += 6;
-                    *rotation %= 8;
-                }
-            }
-        } else if (y < 0) {
-            swap(x, y);
-            x = x + m_width, y = m_width - y - 1;
-
-            if (rotation) {    
-                *rotation += 2;
-                *rotation %= 8;
-            }
-        }
-        return true;
-    case Topology::CONE_LEFT_BOTTOM:
-        assert(m_width == m_height);
-
-        if (!IntRect{-m_width, 0, 2 * m_width, 2 * m_height}.contains(x, y))
-            return false;
-
-        if (x < 0) {
-            if (y >= m_height) {
-                x = -x - 1, y = 2 * m_width - y - 1;
-
-                if (rotation) {
-                    *rotation += 4;
-                    *rotation %= 8;
-                }
-            } else {
-                swap(x, y);
-                x = m_height - x - 1, y = y + m_height;
-
-                if (rotation) {    
-                    *rotation += 6;
-                    *rotation %= 8;
-                }
-            }
-        } else if (y >= m_height) {
-            swap(x, y);
-            x = x - m_width, y = m_height - y - 1;
-
-            if (rotation) {    
-                *rotation += 2;
-                *rotation %= 8;
-            }
-        }
-        return true;
-    case Topology::CONE_RIGHT_BOTTOM:
-        assert(m_width == m_height);
-
-        if (!IntRect{0, 0, 2 * m_width, 2 * m_height}.contains(x, y))
-            return false;
-
-        if (x < m_width) {
-            if (y >= m_height) {
-                swap(x, y);
-                x = 2 * m_width - x - 1;
-
-                if (rotation) {
-                    *rotation += 6;
-                    *rotation %= 8;
-                }
-            }
-        } else {
-            if (y < m_height) {
-                swap(x, y);
-                y = 2 * m_height - y - 1;
-
-                if (rotation) {    
-                    *rotation += 2;
-                    *rotation %= 8;
-                }
-            } else {
-                x = 2 * m_width - x - 1;
-                y = 2 * m_height - y - 1;
-
-                if (rotation) {    
-                    *rotation += 4;
-                    *rotation %= 8;
-                }
-            }
-        }
-        return true;
-    }
-    return false;
 }
 
 double Field::computeTotalEnergy() const {
@@ -353,7 +114,7 @@ void Field::applyDecisions(std::vector<Decision>&& decisions) {
                 int xCurrent = x + dx, yCurrent = y + dy;
                 int currentRotation = rotation;
 
-                if (!makeIndicesSafe(xCurrent, yCurrent, &currentRotation)) continue;
+                if (!getTopology().makeIndicesSafe(xCurrent, yCurrent, currentRotation)) continue;
                 int rotationDelta = rotation % 8 - currentRotation;
                 int index = yCurrent * m_width + xCurrent;
 
@@ -447,7 +208,7 @@ void Field::diffuseGrass() {
                 int xCurrent = x + dx, yCurrent = y + dy;
                 int currentRotation = rotation;
 
-                if (!makeIndicesSafe(xCurrent, yCurrent, &currentRotation)) 
+                if (!getTopology().makeIndicesSafe(xCurrent, yCurrent, currentRotation)) 
                     continue;
                 
                 int rotationDelta = rotation - currentRotation;

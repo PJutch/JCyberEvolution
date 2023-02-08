@@ -13,6 +13,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 
 #include "FieldView.h"
 #include "utility.h"
+#include "Topology.h"
 
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -85,7 +86,7 @@ const int STATISTICS_HISTORY_SIZE = 128;
 
 FieldView::FieldView(Vector2f screenSize, uint64_t seed) : 
         m_field{nullptr}, m_fieldWidth{128}, m_fieldHeight{128}, 
-        m_fieldTopology{Field::Topology::TORUS},
+        m_fieldTopology{nullptr},
         m_randomEngine{seed}, m_cellsVertices{Triangles}, m_botsVertices{Triangles}, m_view{},
         m_screenSize{screenSize}, m_zoom{1.0f}, m_shouldDrawBots{true}, 
         m_fillDensity{0.5f}, m_simulationSpeed{1.f}, m_simulationStepRest{0.f}, m_paused{true}, 
@@ -134,7 +135,7 @@ bool FieldView::handleMouseButtonPressedEvent(const Event::MouseButtonEvent& eve
 
     Vector2f posf = target.mapPixelToCoords({event.x, event.y}, m_view);
     Vector2i pos(floor(posf.x), floor(posf.y));
-    if (!m_field->makeIndicesSafe(pos.x, pos.y)) return handleOutsideClick();
+    if (!m_field->getTopology().makeIndicesSafe(pos.x, pos.y)) return handleOutsideClick();
 
     switch (m_tool) {
         case Tool::SELECT_BOT:
@@ -302,8 +303,8 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
     Vector2f viewStart = m_view.getCenter() - m_view.getSize() / 2.f;
     Vector2f viewEnd   = m_view.getCenter() + m_view.getSize() / 2.f;
 
-    switch (m_field->getTopology()) {
-    case Field::Topology::TORUS: {
+    switch (m_field->getTopology().getId()) {
+    case Topology::Id::TORUS: {
             Vector2f renderStart{
                 getFirstInInterval(0.f, m_field->getWidth(), 
                                    viewStart.x, viewEnd.x),
@@ -318,7 +319,7 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
             }
             break;
         }
-    case Field::Topology::CYLINDER_Y: {
+    case Topology::Id::CYLINDER_Y: {
             float renderStart = getFirstInInterval(0.f, m_field->getHeight(), 
                 viewStart.y, viewEnd.y);
 
@@ -334,7 +335,7 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
             target.draw(fieldBorderShape, states);
             break;
         }
-    case Field::Topology::CYLINDER_X: {
+    case Topology::Id::CYLINDER_X: {
             float renderStart = getFirstInInterval(0.f, m_field->getHeight(), 
                 viewStart.x, viewEnd.x);
 
@@ -350,13 +351,13 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
             target.draw(fieldBorderShape, states);
             break;
         }
-    case Field::Topology::PLANE:
+    case Topology::Id::PLANE:
         drawField(target, states);
         fieldBorderShape.setSize(m_field->getSize());
         fieldBorderShape.setPosition(0.f, 0.f);
         target.draw(fieldBorderShape, states);
         break;
-    case Field::Topology::SPHERE_LEFT: {
+    case Topology::Id::SPHERE_LEFT: {
             Vector2f renderStart{
                 getFirstInInterval(0.f, 2 * m_field->getWidth(), 
                                    viewStart.x, viewEnd.x),
@@ -376,7 +377,7 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
             }
             break;
         }
-    case Field::Topology::SPHERE_RIGHT: {
+    case Topology::Id::SPHERE_RIGHT: {
             Vector2f renderStart{
                 getFirstInInterval(0.f, 2 * m_field->getWidth(), 
                                    viewStart.x, viewEnd.x),
@@ -407,16 +408,16 @@ void FieldView::draw(RenderTarget& target, RenderStates states) const noexcept {
             }
             break;
         }
-    case Field::Topology::CONE_LEFT_TOP:
+    case Topology::Id::CONE_LEFT_TOP:
         drawCone(target, states, Vector2f(0.f, 0.f));
         break;
-    case Field::Topology::CONE_RIGHT_TOP:
+    case Topology::Id::CONE_RIGHT_TOP:
         drawCone(target, states, Vector2f(m_field->getWidth(), 0));
         break;
-    case Field::Topology::CONE_LEFT_BOTTOM:
+    case Topology::Id::CONE_LEFT_BOTTOM:
         drawCone(target, states, Vector2f(0, m_field->getHeight()));
         break;
-    case Field::Topology::CONE_RIGHT_BOTTOM:
+    case Topology::Id::CONE_RIGHT_BOTTOM:
         drawCone(target, states, m_field->getSize());
         break;
     }
@@ -494,32 +495,11 @@ void FieldView::showSaveBotGui() noexcept {
 }
 
 void FieldView::showTopologyCombo() noexcept {
-    int topology = static_cast<int>(m_field->getTopology());
-
-    if (m_field->getWidth() == m_field->getHeight()) {
-        Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
-                                            "Sphere left\0Sphere right\0Cone left top\0"
-                                            "Cone right top\0Cone left bottom\0"
-                                            "Cone right bottom\0");
-    } else {
-        Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
-    }
-    m_field->setTopology(static_cast<Field::Topology>(topology));
+    Topology::showCombo(m_field->getWidth(), m_field->getHeight(), m_field->getTopologyPtr());
 }
 
 void FieldView::showNewFieldTopologyCombo() noexcept {
-    int topology = static_cast<int>(m_fieldTopology);
-    
-    if (m_fieldWidth == m_fieldHeight) {
-        Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0"
-                                            "Sphere left\0Sphere right\0Cone left top\0"
-                                            "Cone right top\0Cone left bottom\0"
-                                            "Cone right bottom\0");
-    } else {
-        if (topology > 3) topology = 0;
-        Combo("Topology", &topology, "Torus\0Cylinder X\0Cylinder Y\0Plane\0");
-    }
-    m_fieldTopology = static_cast<Field::Topology>(topology);
+    Topology::showCombo(m_fieldWidth, m_fieldHeight, m_fieldTopology);
 }
 
 void FieldView::setField(std::unique_ptr<Field>&& field) noexcept {
@@ -664,7 +644,7 @@ void FieldView::showGui() noexcept {
             if (Button("Create")) {
                 setField(make_unique<Field>(m_fieldWidth, m_fieldHeight, m_randomEngine()));
                 fill(m_statistics, m_field->computeStatistics());
-                m_field->setTopology(m_fieldTopology);
+                m_field->setTopology(std::move(m_fieldTopology));
             }
         }
         return;

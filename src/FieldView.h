@@ -98,7 +98,7 @@ private:
 
     int m_fieldWidth;
     int m_fieldHeight;
-    Field::Topology m_fieldTopology;
+    std::unique_ptr<Topology> m_fieldTopology;
     std::mt19937_64 m_randomEngine;
 
     sf::VertexArray m_cellsVertices;

@@ -15,6 +15,7 @@ If not, see <https://www.gnu.org/licenses/>. */
 #define FIELD_H_
 
 #include "Cell.h"
+#include "Topology.h"
 
 #include <SFML/Graphics.hpp>
 
@@ -49,19 +50,6 @@ public:
         bool preserveEnergy = false;
     };
 
-    enum class Topology {
-        TORUS = 0,
-        CYLINDER_X,
-        CYLINDER_Y,
-        PLANE,
-        SPHERE_LEFT,
-        SPHERE_RIGHT,
-        CONE_LEFT_TOP,
-        CONE_RIGHT_TOP,
-        CONE_LEFT_BOTTOM,
-        CONE_RIGHT_BOTTOM
-    };
-
     struct Statistics {
         int population;
         float totalEnergy;
@@ -85,8 +73,6 @@ public:
         return sf::FloatRect(0.f, 0.f, m_width, m_height);
     }
 
-    bool makeIndicesSafe(int& x, int& y, int* rotation = nullptr) const noexcept;
-
     std::mt19937_64& getRandomEngine() noexcept {
         return m_randomEngine;
     }
@@ -105,12 +91,24 @@ public:
         return m_settings;
     }
 
-    Topology getTopology() const noexcept {
+    Topology& getTopology() noexcept {
+        return *m_topology;
+    }
+
+    const Topology& getTopology() const noexcept {
+        return *m_topology;
+    }
+
+    std::unique_ptr<Topology>& getTopologyPtr() noexcept {
         return m_topology;
     }
 
-    void setTopology(Topology topology) noexcept {
-        m_topology = topology;
+    const std::unique_ptr<Topology>& getTopologyPtr() const noexcept {
+        return m_topology;
+    }
+
+    void setTopology(std::unique_ptr<Topology>&&  topology) noexcept {
+        m_topology = std::move(topology);
     }
 
     // i is y and j is x
@@ -169,7 +167,7 @@ public:
 private:
     int m_width;
     int m_height;
-    Topology m_topology;
+    std::unique_ptr<Topology> m_topology;
 
     std::vector<Cell> m_cells;
     int m_epoch;
